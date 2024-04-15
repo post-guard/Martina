@@ -1,0 +1,27 @@
+name: Build Docker Image
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    Build-Martina:
+        runs-on: archlinux
+        steps:
+            -   uses: https://git.rrricardo.top/actions/checkout@v4
+                name: Check out code
+                with:
+                    submodules: true
+                    token: ${{ secrets.GIT_TOKEN }}
+                    github-server-url: 'https://git.rrricardo.top'
+            -   name: Cache nuget packages
+                uses: https://git.rrricardo.top/actions/cache@v4
+                with:
+                    path: ~/.nuget/packages
+                    key: ${{ runner.os }}-nuget
+                    save-always: true
+            -   name: Build .net assembly
+                run: dotnet build -c Release
+            -   name: Build docker image
+                run: |
+                    dotnet publish -p:PublishProfile=DefaultContainer

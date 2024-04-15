@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <SpaRoot>martina-frontend</SpaRoot>
+    <ContainerRepository>martina</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>

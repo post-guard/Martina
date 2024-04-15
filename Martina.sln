@@ -5,6 +5,13 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Martina", "Martina\Martina.csproj", "{68AFC6D7-2DB4-47DC-B7E8-681D26E1225B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".gitea", ".gitea", "{9053E0AC-9B41-43AA-A5C3-16B3241BCB6A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{F3E11BB5-9305-4C3D-BE73-CE0AC0045043}"
+	ProjectSection(SolutionItems) = preProject
+		.gitea\workflows\build.yml = .gitea\workflows\build.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +25,8 @@ Global
 		{68AFC6D7-2DB4-47DC-B7E8-681D26E1225B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68AFC6D7-2DB4-47DC-B7E8-681D26E1225B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68AFC6D7-2DB4-47DC-B7E8-681D26E1225B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F3E11BB5-9305-4C3D-BE73-CE0AC0045043} = {9053E0AC-9B41-43AA-A5C3-16B3241BCB6A}
 	EndGlobalSection
 EndGlobal
