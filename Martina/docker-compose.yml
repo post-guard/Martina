@@ -1,0 +1,23 @@
+﻿version: '3'
+services:
+    mongodb:
+        image: mongo:7.0-jammy
+        container_name: martina-db
+    martina:
+        image: martina:latest
+        container_name: martina
+        restart: unless-stopped
+        environment:
+            TZ: "Asia/Shanghai"
+            ASPNETCORE_ENVIRONMENT: Development
+            ConnectionStrings__MongoDB: "mongodb://mongodb"
+            JWT__PasswordKey: "martina"
+            JWT__HashCount: 100
+            JWT__Issuer: "Martina"
+            JWT__JsonWebTokenKey: "asdfasdfasdfasdfasdfasdfasdfasdf"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.martina.rule=Host(`martina.rrricardo.top`)"
+            - "traefik.http.services.martina.loadbalancer.server.port=8080"
+            - "com.centurylinklabs.watchtower.enable=true"
+            - "com.centurylinklabs.watchtower.no-pull=true"
