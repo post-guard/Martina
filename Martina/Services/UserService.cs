@@ -1,13 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using Martina.DataTransferObjects;
-using Martina.Entities;
+﻿using Martina.DataTransferObjects;
 using Martina.Exceptions;
+using Martina.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Martina.Services;
 
@@ -16,19 +10,9 @@ namespace Martina.Services;
 /// </summary>
 public sealed class UserService(
     MartinaDbContext dbContext,
-    IOptions<JsonWebTokenOption> jsonWebTokenOption,
-    ILogger<UserService> logger) : IDisposable
+    SecretsService secretsService,
+    ILogger<UserService> logger)
 {
-    private readonly HMACSHA256 _hash256Calculator = new(Encoding.UTF8.GetBytes(jsonWebTokenOption.Value.PasswordKey));
-
-    private readonly JsonWebTokenOption _option = jsonWebTokenOption.Value;
-
-    private readonly SigningCredentials _signingCredentials =
-        new(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jsonWebTokenOption.Value.JsonWebTokenKey)),
-            SecurityAlgorithms.HmacSha256);
-
-    private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new();
-
     /// <summary>
     /// 注册新的用户
     /// </summary>
@@ -37,8 +21,8 @@ public sealed class UserService(
     public async Task Register(RegisterRequest request)
     {
         IQueryable<User> existedUsers = from item in dbContext.Users
-            where item.UserId == request.UserId
-            select item;
+                                        where item.UserId == request.UserId
+                                        select item;
 
         if (await existedUsers.AnyAsync())
         {
@@ -47,7 +31,9 @@ public sealed class UserService(
 
         User user = new()
         {
-            UserId = request.UserId, Username = request.Username, Password = CalculatePasswordHash(request.Password)
+            UserId = request.UserId,
+            Username = request.Username,
+            Password = await secretsService.CalculatePasswordHash(request.Password)
         };
 
         await dbContext.Users.AddAsync(user);
@@ -64,8 +50,8 @@ public sealed class UserService(
     public async Task<string> Login(LoginRequest request)
     {
         IQueryable<User> existedUsers = from item in dbContext.Users
-            where item.UserId == request.UserId
-            select item;
+                                        where item.UserId == request.UserId
+                                        select item;
 
         User? user = await existedUsers.FirstOrDefaultAsync();
         if (user is null)
@@ -73,48 +59,46 @@ public sealed class UserService(
             throw new UserException("Target user does not exist");
         }
 
-        if (user.Password == CalculatePasswordHash(request.Password))
+        if (user.Password == await secretsService.CalculatePasswordHash(request.Password))
         {
             logger.LogDebug("User {} login.", request.UserId);
-            return GenerateJsonWebToken(user);
+            return secretsService.GenerateJsonWebToken(user);
         }
 
         throw new UserException("Wrong password");
     }
 
-    public void Dispose()
+    /// <summary>
+    /// 更新用户的信息
+    /// </summary>
+    /// <param name="userResponse">更新用户信息的请求</param>
+    /// <exception cref="UserException">更新过程中的异常</exception>
+    public async Task UpdateUserInformation(UserResponse userResponse)
     {
-        _hash256Calculator.Dispose();
-    }
+        User? user = await dbContext.Users
+            .Where(u => u.UserId == userResponse.UserId)
+            .FirstOrDefaultAsync();
 
-    private string CalculatePasswordHash(string password)
-    {
-        byte[] bytes = Encoding.UTF8.GetBytes(password);
-
-        for (int i = 0; i < _option.HashCount; i++)
+        if (user is null)
         {
-            bytes = _hash256Calculator.ComputeHash(bytes);
+            throw new UserException("Target user is not existed.");
         }
 
-        return Convert.ToHexString(bytes);
-    }
+        UserPermission permission = await dbContext.UserPermissions
+            .Where(p => p.UserId == userResponse.UserId)
+            .FirstAsync();
 
-    private string GenerateJsonWebToken(User user)
-    {
-        List<Claim> claims =
-        [
-            new Claim(ClaimTypes.Name, user.Username)
-        ];
+        if (permission.IsAdministrator)
+        {
+            throw new UserException("Can't update information of administrator.");
+        }
 
-        JwtSecurityToken token = new(
-            issuer: _option.Issuer,
-            audience: user.UserId,
-            notBefore: DateTime.Now,
-            expires: DateTime.Now.AddDays(7),
-            claims: claims,
-            signingCredentials: _signingCredentials
-        );
+        user.Username = userResponse.Username;
 
-        return _jwtSecurityTokenHandler.WriteToken(token);
+        permission.RoomAdministrator = userResponse.Permission.RoomAdministrator;
+        permission.AirConditionorAdministrator = userResponse.Permission.AirConditionorAdministrator;
+        permission.BillAdminstrator = userResponse.Permission.BillAdministrator;
+
+        await dbContext.SaveChangesAsync();
     }
 }

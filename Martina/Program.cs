@@ -1,7 +1,9 @@
-using System.Text;
-using Martina.Entities;
+﻿using System.Text;
+using Martina.Extensions;
+using Martina.Models;
 using Martina.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -26,12 +28,14 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.ApiKey
     });
     options.OperationFilter<SecurityRequirementsOperationFilter>();
+    // 添加XML注释的内容
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Martina.xml"));
 });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddHotelRoleRequirement());
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
     options =>
     {
-        JsonWebTokenOption? jsonWebTokenOption =  builder.Configuration.GetSection(JsonWebTokenOption.OptionName)
+        JsonWebTokenOption? jsonWebTokenOption = builder.Configuration.GetSection(JsonWebTokenOption.OptionName)
             .Get<JsonWebTokenOption>();
 
         if (jsonWebTokenOption is null)
@@ -55,7 +59,13 @@ builder.Services.AddDbContext<MartinaDbContext>(options =>
 });
 builder.Services.Configure<JsonWebTokenOption>(
     builder.Configuration.GetSection(JsonWebTokenOption.OptionName));
+builder.Services.Configure<SystemUserOption>(
+    builder.Configuration.GetSection(SystemUserOption.OptionName));
+builder.Services.AddSingleton<SecretsService>();
+builder.Services.AddSingleton<LifetimeService>();
+builder.Services.AddHostedService<LifetimeService>(provider => provider.GetRequiredService<LifetimeService>());
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
 
 WebApplication application = builder.Build();
 

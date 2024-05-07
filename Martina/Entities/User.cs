@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 
-namespace Martina.Entities;
+namespace Martina.Models;
 
 public class User
 {

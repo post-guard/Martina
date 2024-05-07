@@ -15,6 +15,9 @@ services:
             JWT__HashCount: 100
             JWT__Issuer: "Martina"
             JWT__JsonWebTokenKey: "asdfasdfasdfasdfasdfasdfasdfasdf"
+            SystemUser__Administrator__UserId: "administrator"
+            SysmtemUser__Administrator__Username: "管理员"
+            SystemUser__Administrator__Password: "admin"
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.martina.rule=Host(`martina.rrricardo.top`)"
