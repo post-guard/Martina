@@ -1,15 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 
-namespace Martina.Models;
+namespace Martina.Entities;
 
 public class UserPermission
 {
-    public ObjectId Id { get; set; }
-
-    [MaxLength(20)]
-    public string UserId { get; set; } = string.Empty;
-
     /// <summary>
     /// 是否是管理员
     /// </summary>

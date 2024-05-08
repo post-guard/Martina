@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Martina.Models;
+using System.Text.Json.Serialization;
+using Martina.Entities;
 
 namespace Martina.DataTransferObjects;
 
@@ -12,18 +13,21 @@ public class UserResponse
     /// 用户ID
     /// </summary>
     [Required]
+    [JsonPropertyName("id")]
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户名
     /// </summary>
     [Required]
+    [JsonPropertyName("name")]
     public string Username { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户的权限
     /// </summary>
     [Required]
+    [JsonPropertyName("auth")]
     public PermissionResponse Permission { get; set; } = new();
 
     public UserResponse()
@@ -31,17 +35,17 @@ public class UserResponse
 
     }
 
-    public UserResponse(User user, UserPermission permission)
+    public UserResponse(User user)
     {
         UserId = user.UserId;
         Username = user.Username;
 
         Permission = new PermissionResponse
         {
-            Administrator = permission.IsAdministrator,
-            AirConditionorAdministrator = permission.AirConditionorAdministrator,
-            RoomAdministrator = permission.RoomAdministrator,
-            BillAdministrator = permission.BillAdminstrator
+            Administrator = user.Permission.IsAdministrator,
+            AirConditionorAdministrator = user.Permission.AirConditionorAdministrator,
+            RoomAdministrator = user.Permission.RoomAdministrator,
+            BillAdministrator = user.Permission.BillAdminstrator
         };
     }
 }

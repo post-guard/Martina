@@ -1,4 +1,4 @@
-﻿namespace Martina.Models;
+﻿namespace Martina.Entities;
 
 public class JsonWebTokenOption
 {

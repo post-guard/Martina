@@ -1,6 +1,6 @@
 ﻿using Martina.DataTransferObjects;
 using Martina.Exceptions;
-using Martina.Models;
+using Martina.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Martina.Services;
@@ -77,6 +77,7 @@ public sealed class UserService(
     {
         User? user = await dbContext.Users
             .Where(u => u.UserId == userResponse.UserId)
+            .Include(u => u.Permission)
             .FirstOrDefaultAsync();
 
         if (user is null)
@@ -84,9 +85,7 @@ public sealed class UserService(
             throw new UserException("Target user is not existed.");
         }
 
-        UserPermission permission = await dbContext.UserPermissions
-            .Where(p => p.UserId == userResponse.UserId)
-            .FirstAsync();
+        UserPermission permission = user.Permission;
 
         if (permission.IsAdministrator)
         {

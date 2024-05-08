@@ -1,4 +1,4 @@
-﻿using Martina.Models;
+﻿using Martina.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -36,26 +36,24 @@ public class LifetimeService(IServiceProvider serviceProvider,
         {
             logger.LogInformation("Remove old administrator information.");
 
-            UserPermission userPermission = await dbContext.UserPermissions
-                .Where(p => p.UserId == user.UserId)
-                .FirstAsync();
-
             dbContext.Users.Remove(user);
-            dbContext.UserPermissions.Remove(userPermission);
+            await dbContext.SaveChangesAsync();
         }
 
         User newUser = new()
         {
             UserId = _option.Administrator.UserId,
             Username = _option.Administrator.Username,
-            Password = await _secretsService.CalculatePasswordHash(_option.Administrator.Password)
+            Password = await _secretsService.CalculatePasswordHash(_option.Administrator.Password),
+            Permission = new UserPermission
+            {
+                IsAdministrator = true
+            }
         };
 
         logger.LogInformation("Create new administrator '{}'.", newUser.Username);
-        UserPermission newPermission = new() { UserId = newUser.UserId, IsAdministrator = true };
 
         await dbContext.Users.AddAsync(newUser);
-        await dbContext.UserPermissions.AddAsync(newPermission);
 
         await dbContext.SaveChangesAsync();
     }

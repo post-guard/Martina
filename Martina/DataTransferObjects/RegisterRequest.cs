@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Martina.DataTransferObjects;
 
@@ -11,12 +12,14 @@ public class RegisterRequest
     /// 用户ID
     /// </summary>
     [Required]
+    [JsonPropertyName("id")]
     public required string UserId { get; set; }
 
     /// <summary>
     /// 用户名
     /// </summary>
     [Required]
+    [JsonPropertyName("name")]
     public required string Username { get; set; }
 
     /// <summary>

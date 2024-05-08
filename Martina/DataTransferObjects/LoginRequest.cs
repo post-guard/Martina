@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Martina.DataTransferObjects;
 
@@ -11,6 +12,7 @@ public class LoginRequest
     /// 需要登录的用户ID
     /// </summary>
     [Required]
+    [JsonPropertyName("id")]
     public required string UserId { get; set; }
 
     /// <summary>

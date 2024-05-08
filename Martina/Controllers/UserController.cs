@@ -1,6 +1,6 @@
 ﻿using Martina.DataTransferObjects;
 using Martina.Exceptions;
-using Martina.Models;
+using Martina.Entities;
 using Martina.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,10 +9,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Martina.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user")]
 public class UserController(UserService userService, MartinaDbContext dbContext) : ControllerBase
 {
-
     /// <summary>
     /// 注册用户
     /// </summary>
@@ -76,12 +75,23 @@ public class UserController(UserService userService, MartinaDbContext dbContext)
             return NotFound();
         }
 
-        UserPermission permission = await dbContext.UserPermissions
-            .AsNoTracking()
-            .Where(permission => permission.UserId == userId)
-            .FirstAsync();
+        return Ok(new UserResponse(user));
+    }
 
-        return Ok(new UserResponse(user, permission));
+    /// <summary>
+    /// 获得所有的用户信息
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("all")]
+    [Authorize(policy: "Administrator")]
+    [ProducesResponseType<IEnumerable<UserResponse>>(200)]
+    public IActionResult GetAllUserInformation()
+    {
+        List<User> users = dbContext.Users
+            .AsNoTracking()
+            .ToList();
+
+        return Ok(users.Select(u => new UserResponse(u)));
     }
 
     /// <summary>

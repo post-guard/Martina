@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Martina.Extensions;
-using Martina.Models;
+using Martina.Entities;
 using Martina.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;

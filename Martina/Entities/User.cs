@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 
-namespace Martina.Models;
+namespace Martina.Entities;
 
 public class User
 {
@@ -15,4 +15,6 @@ public class User
 
     [MaxLength(40)]
     public string Password { get; set; } = string.Empty;
+
+    public UserPermission Permission { get; set; } = new();
 }

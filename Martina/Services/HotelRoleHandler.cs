@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using Martina.Enums;
-using Martina.Models;
+using Martina.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,19 +18,19 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
             return;
         }
 
-        UserPermission? permission = await dbContext.UserPermissions
-            .Where(p => p.UserId == userId.Value)
+        User? user = await dbContext.Users
+            .Include(u => u.Permission)
+            .Where(u => u.UserId == userId.Value)
             .FirstOrDefaultAsync();
 
-        if (permission is null)
+        if (user is null)
         {
-            context.Fail(new AuthorizationFailureReason(this, "No permission for this user is valid."));
             return;
         }
 
         if ((requirement.HotelRole & Roles.Administrator) == Roles.Administrator)
         {
-            if (permission.IsAdministrator)
+            if (user.Permission.IsAdministrator)
             {
                 context.Succeed(requirement);
             }
@@ -42,7 +42,7 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
 
         if ((requirement.HotelRole & Roles.BillAdministrator) == Roles.BillAdministrator)
         {
-            if (permission.BillAdminstrator)
+            if (user.Permission.BillAdminstrator)
             {
                 context.Succeed(requirement);
             }
@@ -54,7 +54,7 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
 
         if ((requirement.HotelRole & Roles.RoomAdministrator) == Roles.RoomAdministrator)
         {
-            if (permission.RoomAdministrator)
+            if (user.Permission.RoomAdministrator)
             {
                 context.Succeed(requirement);
             }
@@ -66,7 +66,7 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
 
         if ((requirement.HotelRole & Roles.AirConditionorAdministrator) == Roles.AirConditionorAdministrator)
         {
-            if (permission.AirConditionorAdministrator)
+            if (user.Permission.AirConditionorAdministrator)
             {
                 context.Succeed(requirement);
             }
