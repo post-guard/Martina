@@ -65,6 +65,7 @@ builder.Services.AddSingleton<SecretsService>();
 builder.Services.AddSingleton<LifetimeService>();
 builder.Services.AddHostedService<LifetimeService>(provider => provider.GetRequiredService<LifetimeService>());
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CheckinService>();
 builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
 
 WebApplication application = builder.Build();
