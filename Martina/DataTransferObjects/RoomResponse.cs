@@ -32,6 +32,11 @@ public class RoomResponse
     [Required]
     public float RoomBaiscTemperature { get; set; }
 
+    /// <summary>
+    /// 房间当前的入住状态
+    /// </summary>
+    public CheckinResponse? CheckinStatus { get; set; }
+
     public RoomResponse()
     {
 
@@ -43,5 +48,10 @@ public class RoomResponse
         RoomName = room.RoomName;
         PricePerDay = room.Price;
         RoomBaiscTemperature = room.RoomBasicTemperature;
+    }
+
+    public RoomResponse(Room room, CheckinRecord record) : this(room)
+    {
+        CheckinStatus = new CheckinResponse(record);
     }
 }

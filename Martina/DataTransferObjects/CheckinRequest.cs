@@ -17,6 +17,12 @@ public class CheckinRequest
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 入住的用户姓名
+    /// </summary>
+    [Required]
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>
     /// 入住的时间
     /// </summary>
     [Required]

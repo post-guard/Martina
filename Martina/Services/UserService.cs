@@ -2,6 +2,7 @@
 using Martina.Exceptions;
 using Martina.Entities;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
 
 namespace Martina.Services;
 
@@ -99,5 +100,31 @@ public sealed class UserService(
         permission.BillAdminstrator = userResponse.Permission.BillAdministrator;
 
         await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<User> CreateUser(string userId, string username)
+    {
+        IQueryable<User> existedQuery = from item in dbContext.Users.AsNoTracking()
+            where item.UserId == userId
+            select item;
+
+        User? existedUser = await existedQuery.FirstOrDefaultAsync();
+        if (existedUser is not null)
+        {
+            return existedUser;
+        }
+
+        User newUser = new()
+        {
+            Id = ObjectId.GenerateNewId(),
+            UserId = userId,
+            Username = username,
+            Password = await secretsService.CalculatePasswordHash(userId)
+        };
+
+        await dbContext.Users.AddAsync(newUser);
+        await dbContext.SaveChangesAsync();
+
+        return newUser;
     }
 }

@@ -6,7 +6,7 @@ using MongoDB.Bson;
 
 namespace Martina.Services;
 
-public class CheckinService(MartinaDbContext dbContext)
+public class CheckinService(MartinaDbContext dbContext, UserService userService)
 {
     public List<CheckinRecord> QueryCheckinRecords(string? roomId, string? userId, long begin, long end)
     {
@@ -45,10 +45,7 @@ public class CheckinService(MartinaDbContext dbContext)
             throw new CheckinException("Checkout time must be after of checkin time.");
         }
 
-        if (!await dbContext.Users.AsNoTracking().AnyAsync(u => u.UserId == request.UserId))
-        {
-            throw new CheckinException("Checkin user doesn't register.");
-        }
+        User user = await userService.CreateUser(request.UserId, request.Username);
 
         if (!await dbContext.Rooms.AsNoTracking().AnyAsync(r => r.Id == roomId))
         {
@@ -68,7 +65,7 @@ public class CheckinService(MartinaDbContext dbContext)
         {
             Id = ObjectId.GenerateNewId(),
             RoomId = roomId,
-            UserId = request.UserId,
+            UserId = user.UserId,
             BeginTime = beginTime,
             EndTime = endTime,
             Checkout = false

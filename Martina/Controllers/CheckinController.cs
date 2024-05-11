@@ -2,6 +2,7 @@
 using Martina.Entities;
 using Martina.Exceptions;
 using Martina.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
@@ -10,11 +11,15 @@ namespace Martina.Controllers;
 
 [ApiController]
 [Route("api/checkin")]
+[Authorize(policy: "RoomAdministrator")]
 public sealed class CheckinController(MartinaDbContext dbContext, CheckinService checkinService) : ControllerBase
 {
     /// <summary>
     /// 查询所有的入住记录
     /// </summary>
+    /// <remarks>
+    /// 需要房间管理员及以上的权限
+    /// </remarks>
     /// <returns></returns>
     [HttpGet]
     [ProducesResponseType<IEnumerable<CheckinResponse>>(200)]
@@ -29,6 +34,9 @@ public sealed class CheckinController(MartinaDbContext dbContext, CheckinService
     /// <summary>
     /// 列出指定的入住记录
     /// </summary>
+    /// <remarks>
+    /// 需要房间管理员及以上的权限
+    /// </remarks>
     /// <param name="recordId"></param>
     /// <returns></returns>
     [HttpGet("{recordId}")]
@@ -55,6 +63,9 @@ public sealed class CheckinController(MartinaDbContext dbContext, CheckinService
     /// <summary>
     /// 创建指定的入住记录
     /// </summary>
+    /// <remarks>
+    /// 需要房间管理员及以上的权限
+    /// </remarks>
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
@@ -77,6 +88,9 @@ public sealed class CheckinController(MartinaDbContext dbContext, CheckinService
     /// <summary>
     /// 删除指定的入住记录
     /// </summary>
+    /// <remarks>
+    /// 需要房间管理员及以上的权限
+    /// </remarks>
     /// <param name="recordId"></param>
     /// <returns></returns>
     [HttpDelete("{recordId}")]
