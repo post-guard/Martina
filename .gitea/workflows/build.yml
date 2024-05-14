@@ -20,6 +20,11 @@ jobs:
                     path: ~/.nuget/packages
                     key: ${{ runner.os }}-nuget
                     save-always: true
+            -   name: Build Frontend
+                run: |
+                    cd Martina/martina-frontend
+                    npm i
+                    npm run build
             -   name: Build .net assembly
                 run: dotnet build -c Release
             -   name: Build docker image

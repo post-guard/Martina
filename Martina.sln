@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{F3E11BB5-9305-4C3D-BE73-CE0AC0045043}"
 	ProjectSection(SolutionItems) = preProject
 		.gitea\workflows\build.yml = .gitea\workflows\build.yml
+		.gitea\workflows\test.yml = .gitea\workflows\test.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Martina.Tests", "Martina.Tests\Martina.Tests.csproj", "{0D32183B-5DB3-4C2F-88A2-8E0D40784CC7}"
