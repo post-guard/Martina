@@ -1,6 +1,6 @@
 ﻿using Martina.DataTransferObjects;
 
-namespace Martina.Entities;
+namespace Martina.Models;
 
 public class SystemUserOption
 {

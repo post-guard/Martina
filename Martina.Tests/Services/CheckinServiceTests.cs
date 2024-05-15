@@ -45,7 +45,7 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
 
         Assert.Contains(dbContext.Users, u => u is { UserId: "1", Username: "test" });
 
-        CheckinRecord? checkinRecord = await roomService.QueryCurrentStatus(new ObjectId(roomResponse.RoomId));
+        CheckinRecord? checkinRecord = await roomService.QueryRoomCurrentStatus(new ObjectId(roomResponse.RoomId));
         Assert.NotNull(checkinRecord);
 
         Assert.Equal("1", checkinRecord.UserId);

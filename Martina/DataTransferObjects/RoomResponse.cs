@@ -33,6 +33,12 @@ public class RoomResponse
     public float RoomBaiscTemperature { get; set; }
 
     /// <summary>
+    /// 房间的空调状态
+    /// </summary>
+    [Required]
+    public AirConditionorResponse AirConditionor { get; set; } = new();
+
+    /// <summary>
     /// 房间当前的入住状态
     /// </summary>
     public CheckinResponse? CheckinStatus { get; set; }

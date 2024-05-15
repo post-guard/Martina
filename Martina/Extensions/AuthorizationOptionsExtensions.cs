@@ -1,5 +1,5 @@
 ﻿using Martina.Enums;
-using Martina.Entities;
+using Martina.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Martina.Extensions;

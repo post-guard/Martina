@@ -57,7 +57,7 @@ public sealed class RoomController(MartinaDbContext dbContext, RoomService roomS
             return NotFound(new ExceptionMessage("Target room doesn't exist."));
         }
 
-        CheckinRecord? record = await roomService.QueryCurrentStatus(room.Id);
+        CheckinRecord? record = await roomService.QueryRoomCurrentStatus(room.Id);
 
         return Ok(record is null ? new RoomResponse(room) : new RoomResponse(room, record));
     }

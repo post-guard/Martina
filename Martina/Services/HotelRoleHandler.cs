@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Martina.Enums;
 using Martina.Entities;
+using Martina.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,8 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
             return;
         }
 
+        // 如果要求的权限是超级管理员
+        // 则判断是否是超级管理员
         if ((requirement.HotelRole & Roles.Administrator) == Roles.Administrator)
         {
             if (user.Permission.IsAdministrator)
@@ -38,6 +41,14 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
             {
                 context.Fail();
             }
+        }
+
+        // 剩下的权限
+        // 如果用户是超级管理员则直接有权限
+        if (user.Permission.IsAdministrator)
+        {
+            context.Succeed(requirement);
+            return;
         }
 
         if ((requirement.HotelRole & Roles.BillAdministrator) == Roles.BillAdministrator)

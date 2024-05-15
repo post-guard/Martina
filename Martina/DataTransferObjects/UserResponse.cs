@@ -30,6 +30,11 @@ public class UserResponse
     [JsonPropertyName("auth")]
     public PermissionResponse Permission { get; set; } = new();
 
+    /// <summary>
+    /// 用户当前的入住记录
+    /// </summary>
+    public CheckinResponse Checkin { get; set; } = new();
+
     public UserResponse()
     {
 
@@ -47,5 +52,10 @@ public class UserResponse
             RoomAdministrator = user.Permission.RoomAdministrator,
             BillAdministrator = user.Permission.BillAdminstrator
         };
+    }
+
+    public UserResponse(User user, CheckinRecord checkinRecord) : this(user)
+    {
+        Checkin = new CheckinResponse(checkinRecord);
     }
 }

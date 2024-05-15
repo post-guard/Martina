@@ -29,4 +29,5 @@ jobs:
                 run: dotnet build -c Release
             -   name: Build docker image
                 run: |
+                    cd Martina
                     dotnet publish -p:PublishProfile=DefaultContainer

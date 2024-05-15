@@ -1,4 +1,5 @@
 ﻿using Martina.Entities;
+using Martina.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

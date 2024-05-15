@@ -1,7 +1,7 @@
 ﻿using Martina.Enums;
 using Microsoft.AspNetCore.Authorization;
 
-namespace Martina.Entities;
+namespace Martina.Models;
 
 /// <summary>
 /// 对于酒店管理权限的要求

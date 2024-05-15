@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Martina.Extensions;
-using Martina.Entities;
+using Martina.Models;
 using Martina.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +20,7 @@ if (connectionString is null)
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(options =>
 {
+    options.DocInclusionPredicate((name, api) => api.HttpMethod != null);
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
         Description = "Need 'Authorization' header using JWT token.",
@@ -68,6 +69,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<CheckinService>();
 builder.Services.AddScoped<RoomService>();
 builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CheckinHandler>();
 
 WebApplication application = builder.Build();
 
@@ -76,6 +78,8 @@ if (application.Environment.IsDevelopment())
     application.UseSwagger();
     application.UseSwaggerUI();
 }
+
+application.UseWebSockets();
 
 application.UseAuthentication();
 application.UseAuthorization();

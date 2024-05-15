@@ -10,7 +10,8 @@ namespace Martina.Controllers;
 
 [ApiController]
 [Route("api/user")]
-public class UserController(UserService userService, MartinaDbContext dbContext) : ControllerBase
+public class UserController(UserService userService, RoomService roomService, MartinaDbContext dbContext)
+    : ControllerBase
 {
     /// <summary>
     /// 注册用户
@@ -62,8 +63,9 @@ public class UserController(UserService userService, MartinaDbContext dbContext)
     /// <returns></returns>
     [HttpGet("{userId}")]
     [Authorize]
-    [ProducesResponseType(200)]
-    public async Task<ActionResult<UserResponse>> GetUserInformation([FromRoute] string userId)
+    [ProducesResponseType<UserResponse>(200)]
+    [ProducesResponseType<ExceptionMessage>(404)]
+    public async Task<IActionResult> GetUserInformation([FromRoute] string userId)
     {
         User? user = await dbContext.Users
             .AsNoTracking()
@@ -72,10 +74,17 @@ public class UserController(UserService userService, MartinaDbContext dbContext)
 
         if (user is null)
         {
-            return NotFound();
+            return NotFound(new ExceptionMessage("查询的用户不存在"));
         }
 
-        return Ok(new UserResponse(user));
+        CheckinRecord? record = await roomService.QueryUserCurrentStatus(userId);
+
+        if (record is null)
+        {
+            return Ok(new UserResponse(user));
+        }
+
+        return Ok(new UserResponse(user, record));
     }
 
     /// <summary>
@@ -104,7 +113,8 @@ public class UserController(UserService userService, MartinaDbContext dbContext)
     [Authorize(policy: "Administrator")]
     [ProducesResponseType<UserResponse>(200)]
     [ProducesResponseType<ExceptionMessage>(400)]
-    public async Task<IActionResult> UpdateUserInformation([FromRoute] string userId, [FromBody] UserResponse userResponse)
+    public async Task<IActionResult> UpdateUserInformation([FromRoute] string userId,
+        [FromBody] UserResponse userResponse)
     {
         if (userId != userResponse.UserId)
         {
