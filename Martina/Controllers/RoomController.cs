@@ -41,8 +41,13 @@ public sealed class RoomController(MartinaDbContext dbContext, RoomService roomS
     [Authorize]
     public async Task<IActionResult> GetRoom([FromRoute] string roomId)
     {
+        if (!ObjectId.TryParse(roomId, out ObjectId roomObjectId))
+        {
+            return NotFound(new ExceptionMessage("Invalid room id."));
+        }
+
         IQueryable<Room> query = from item in dbContext.Rooms.AsNoTracking()
-            where item.Id == new ObjectId(roomId)
+            where item.Id == roomObjectId
             select item;
 
         Room? room = await query.FirstOrDefaultAsync();

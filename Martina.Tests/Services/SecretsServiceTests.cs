@@ -1,23 +1,12 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Martina.Tests.Utils;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Martina.Tests.Services;
 
 public class SecretsServiceTests
 {
-    private readonly Mock<IOptions<JsonWebTokenOption>> _optionMock = new();
-
-    public SecretsServiceTests()
-    {
-        _optionMock.SetupGet(o => o.Value)
-            .Returns(() => new JsonWebTokenOption
-            {
-                PasswordKey = "asdfasdf",
-                HashCount = 1,
-                Issuer = "test",
-                JsonWebTokenKey = "asdfasdf"
-            });
-    }
+    private readonly Mock<IOptions<JsonWebTokenOption>> _optionMock = MockCreater.CreateJsonWebTokenOptionMock();
 
     [Fact]
     public async Task CalculatePasswordHashTest()

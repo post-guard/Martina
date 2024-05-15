@@ -53,7 +53,7 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
         }
 
         IQueryable<CheckinRecord> records = from item in dbContext.CheckinRecords.AsNoTracking()
-            where item.RoomId == roomId && (item.BeginTime < endTime || item.EndTime > beginTime)
+            where item.RoomId == roomId && item.EndTime >= beginTime && item.BeginTime <= endTime
             select item;
 
         if (await records.AnyAsync())
