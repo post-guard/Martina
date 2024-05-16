@@ -86,7 +86,7 @@ public class DefaultSchedular(
                 {
                     AirConditionerState state = States[service.RoomId];
 
-                    if (float.Abs(state.CurrentTemperature - state.TargetTemperature) < AirConditionerOption.Tolerance)
+                    if (state.CurrentTemperature < state.TargetTemperature)
                     {
                         removed.Add(state.RoomId);
                         continue;
@@ -108,8 +108,7 @@ public class DefaultSchedular(
 
                 foreach (AirConditionerState state in States.Values)
                 {
-                    if (!state.Openning && float.Abs(state.CurrentTemperature - state.BasicTemperature) >=
-                        AirConditionerOption.Tolerance)
+                    if (!state.Openning && state.CurrentTemperature < state.BasicTemperature)
                     {
                         state.CurrentTemperature += AirConditionerOption.BackSpeed;
                     }

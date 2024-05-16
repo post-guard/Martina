@@ -34,13 +34,9 @@ public class CheckinHandler(
 
         CheckinRecord? record = await roomService.QueryUserCurrentStatus(userId.Value);
 
-        if (record is null || record.RoomId != resource.Id)
+        if (record?.RoomId == resource.Id)
         {
             context.Succeed(requirement);
-        }
-        else
-        {
-            context.Fail();
         }
     }
 }
