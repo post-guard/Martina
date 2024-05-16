@@ -48,7 +48,7 @@ public class UserResponse
         Permission = new PermissionResponse
         {
             Administrator = user.Permission.IsAdministrator,
-            AirConditionorAdministrator = user.Permission.AirConditionorAdministrator,
+            AirConditionerAdministrator = user.Permission.AirConditionorAdministrator,
             RoomAdministrator = user.Permission.RoomAdministrator,
             BillAdministrator = user.Permission.BillAdminstrator
         };

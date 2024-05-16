@@ -96,7 +96,7 @@ public sealed class UserService(
         user.Username = userResponse.Username;
 
         permission.RoomAdministrator = userResponse.Permission.RoomAdministrator;
-        permission.AirConditionorAdministrator = userResponse.Permission.AirConditionorAdministrator;
+        permission.AirConditionorAdministrator = userResponse.Permission.AirConditionerAdministrator;
         permission.BillAdminstrator = userResponse.Permission.BillAdministrator;
 
         await dbContext.SaveChangesAsync();

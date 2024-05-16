@@ -3,7 +3,7 @@ using Martina.Enums;
 
 namespace Martina.DataTransferObjects;
 
-public class AirConditionorRequest
+public class AirConditionerRequest
 {
     /// <summary>
     /// 开启还是关闭空调
@@ -20,4 +20,7 @@ public class AirConditionorRequest
     /// 要求的目标风速
     /// </summary>
     public FanSpeed Speed { get; set; }
+
+    public override string ToString()
+        => $"Request for air conditioner: {Open}-{TargetTemperature}-{Speed}";
 }

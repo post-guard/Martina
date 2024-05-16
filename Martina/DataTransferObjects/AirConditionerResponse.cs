@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Martina.Enums;
+using Martina.Models;
 
 namespace Martina.DataTransferObjects;
 
-public class AirConditionorResponse
+public class AirConditionerResponse
 {
     /// <summary>
     /// 空调所在房间的ID
@@ -43,4 +44,18 @@ public class AirConditionorResponse
     /// </summary>
     [Required]
     public bool Cooling { get; set; }
+
+    public AirConditionerResponse()
+    {
+    }
+
+    public AirConditionerResponse(AirConditionerState state)
+    {
+        RoomId = state.RoomId.ToString();
+        Temperature = state.CurrentTemperature;
+        TargetTemperature = state.TargetTemperature;
+        Speed = state.Speed;
+        Cooling = state.Cooling;
+        Opening = state.Openning;
+    }
 }

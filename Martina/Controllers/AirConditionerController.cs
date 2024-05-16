@@ -1,5 +1,6 @@
 ﻿using System.Net.WebSockets;
 using System.Text.Json;
+using Martina.Abstractions;
 using Martina.DataTransferObjects;
 using Martina.Entities;
 using Martina.Models;
@@ -12,11 +13,12 @@ using MongoDB.Bson;
 namespace Martina.Controllers;
 
 [ApiController]
-[Route("api/airConditionor")]
-public class AirConditionorController(
+[Route("api/airConditioner")]
+public class AirConditionerController(
     IAuthorizationService authorizationService,
+    ISchedular schedular,
     MartinaDbContext dbContext,
-    ILogger<AirConditionorController> logger) : ControllerBase
+    ILogger<AirConditionerController> logger) : ControllerBase
 {
     /// <summary>
     /// 发起空调服务请求
@@ -29,7 +31,7 @@ public class AirConditionorController(
     /// <returns></returns>
     [HttpPost("{roomId}")]
     public async Task<IActionResult> RequestAirConditionor([FromRoute] string roomId,
-        [FromBody] AirConditionorRequest request)
+        [FromBody] AirConditionerRequest request)
     {
         if (!ObjectId.TryParse(roomId, out ObjectId roomObjectId))
         {
@@ -52,11 +54,12 @@ public class AirConditionorController(
             return Forbid();
         }
 
+        logger.LogInformation("Receive from {}: {}.", room.RoomName, request);
+        await schedular.SendRequest(room.Id, request);
         return Ok();
     }
 
     [Route("ws")]
-    [Authorize(policy: "AirConditionorAdministrator")]
     public async Task PushRoomsInformation()
     {
         if (!HttpContext.WebSockets.IsWebSocketRequest)
@@ -66,17 +69,12 @@ public class AirConditionorController(
         }
 
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-        logger.LogInformation("Receive websocket connection");
 
-        List<AirConditionorResponse> responses = [];
+        List<AirConditionerResponse> responses = [];
 
-        foreach (Room room in dbContext.Rooms.AsNoTracking())
+        foreach (AirConditionerState state in schedular.States.Values)
         {
-            responses.Add(new AirConditionorResponse
-            {
-                RoomId = room.Id.ToString(),
-                Opening = false
-            });
+            responses.Add(new AirConditionerResponse(state));
         }
 
         Memory<byte> sendMessage =
@@ -93,16 +91,9 @@ public class AirConditionorController(
 
             if (receiveResult.CloseStatus.HasValue)
             {
-                try
-                {
-                    await stoppingTokenSource.CancelAsync();
-                    await sendTask;
-                }
-                catch (OperationCanceledException)
-                {
-                }
+                await stoppingTokenSource.CancelAsync();
+                await sendTask;
 
-                logger.LogInformation("Close connection.");
                 await webSocket.CloseAsync(receiveResult.CloseStatus.Value, receiveResult.CloseStatusDescription,
                     CancellationToken.None);
                 break;
@@ -116,11 +107,13 @@ public class AirConditionorController(
         if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return;
         }
 
         if (!ObjectId.TryParse(roomId, out ObjectId roomObjectId))
         {
             HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return;
         }
 
         Room? room = await dbContext.Rooms.AsNoTracking()
@@ -133,21 +126,12 @@ public class AirConditionorController(
             return;
         }
 
-        AuthorizationResult result = await authorizationService.AuthorizeAsync(User, room, [new CheckinRequirement()]);
-
-        if (!result.Succeeded)
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return;
-        }
-
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-        logger.LogInformation("Receive websocket connection.");
 
         CancellationTokenSource stoppingTokenSource = new();
 
         Memory<byte> sendMessage = JsonSerializer.SerializeToUtf8Bytes(
-            new AirConditionorResponse { RoomId = room.Id.ToString(), Opening = false },
+            new AirConditionerResponse { RoomId = room.Id.ToString(), Opening = false },
             new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         Task sendTask = SendAirConditionorInformation(sendMessage, webSocket, stoppingTokenSource.Token);
@@ -161,15 +145,8 @@ public class AirConditionorController(
             if (receiveResult.CloseStatus.HasValue)
             {
                 await stoppingTokenSource.CancelAsync();
-                try
-                {
-                    await sendTask;
-                }
-                catch (OperationCanceledException)
-                {
-                }
+                await sendTask;
 
-                logger.LogInformation("Close connection.");
                 await webSocket.CloseAsync(receiveResult.CloseStatus.Value, receiveResult.CloseStatusDescription,
                     CancellationToken.None);
                 break;
@@ -181,13 +158,17 @@ public class AirConditionorController(
     {
         using PeriodicTimer timer = new(TimeSpan.FromSeconds(10));
 
-        logger.LogInformation("Send message.");
-        await webSocket.SendAsync(content, WebSocketMessageType.Text, true, token);
-
-        while (await timer.WaitForNextTickAsync(token))
+        try
         {
-            logger.LogInformation("Send message.");
             await webSocket.SendAsync(content, WebSocketMessageType.Text, true, token);
+
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                await webSocket.SendAsync(content, WebSocketMessageType.Text, true, token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 }

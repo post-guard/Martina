@@ -1,16 +1,13 @@
 ﻿using Martina.DataTransferObjects;
-using Martina.Entities;
 using Martina.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MongoDB.Bson;
 
 namespace Martina.Controllers;
 
 [ApiController]
 [Route("api/room")]
-public sealed class RoomController(MartinaDbContext dbContext, RoomService roomService) : ControllerBase
+public sealed class RoomController(RoomService roomService) : ControllerBase
 {
     /// <summary>
     /// 查询所有的房间
@@ -41,25 +38,14 @@ public sealed class RoomController(MartinaDbContext dbContext, RoomService roomS
     [Authorize]
     public async Task<IActionResult> GetRoom([FromRoute] string roomId)
     {
-        if (!ObjectId.TryParse(roomId, out ObjectId roomObjectId))
+        RoomResponse? response = await roomService.FindRoomById(roomId);
+
+        if (response is null)
         {
-            return NotFound(new ExceptionMessage("Invalid room id."));
+            return NotFound(new ExceptionMessage("查询的房间不存在！"));
         }
 
-        IQueryable<Room> query = from item in dbContext.Rooms.AsNoTracking()
-            where item.Id == roomObjectId
-            select item;
-
-        Room? room = await query.FirstOrDefaultAsync();
-
-        if (room is null)
-        {
-            return NotFound(new ExceptionMessage("Target room doesn't exist."));
-        }
-
-        CheckinRecord? record = await roomService.QueryRoomCurrentStatus(room.Id);
-
-        return Ok(record is null ? new RoomResponse(room) : new RoomResponse(room, record));
+        return Ok(response);
     }
 
     /// <summary>
@@ -75,54 +61,9 @@ public sealed class RoomController(MartinaDbContext dbContext, RoomService roomS
     [Authorize(policy: "Administrator")]
     public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request)
     {
-        Room room = new()
-        {
-            Id = ObjectId.GenerateNewId(),
-            RoomName = request.RoomName,
-            Price = request.PricePerDay,
-            RoomBasicTemperature = request.RoomBasicTemperature
-        };
+        RoomResponse response = await roomService.CreateRoom(request);
 
-        await dbContext.Rooms.AddAsync(room);
-        await dbContext.SaveChangesAsync();
-
-        return Created($"api/room/{room.Id}", new RoomResponse(room));
-    }
-
-    /// <summary>
-    /// 修改指定房间的信息
-    /// </summary>
-    /// <remarks>
-    /// 需要超级管理员权限
-    /// </remarks>
-    /// <param name="roomId"></param>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPut("{roomId}")]
-    [ProducesResponseType<RoomResponse>(200)]
-    [ProducesResponseType<ExceptionMessage>(400)]
-    [Authorize(policy: "Administrator")]
-    public async Task<IActionResult> UpdateRoomInformation([FromRoute] string roomId,
-        [FromBody] CreateRoomRequest request)
-    {
-        IQueryable<Room> query = from item in dbContext.Rooms
-            where item.Id == new ObjectId(roomId)
-            select item;
-
-        Room? room = await query.FirstOrDefaultAsync();
-
-        if (room is null)
-        {
-            return BadRequest(new ExceptionMessage("Target room doesn't exist."));
-        }
-
-        room.RoomName = request.RoomName;
-        room.Price = request.PricePerDay;
-        room.RoomBasicTemperature = request.RoomBasicTemperature;
-
-        await dbContext.SaveChangesAsync();
-
-        return Ok(new RoomResponse(room));
+        return Created($"api/room/{response.RoomId}", response);
     }
 
     /// <summary>
@@ -139,20 +80,13 @@ public sealed class RoomController(MartinaDbContext dbContext, RoomService roomS
     [Authorize(policy: "Administrator")]
     public async Task<IActionResult> DeleteRoom([FromRoute] string roomId)
     {
-        IQueryable<Room> query = from item in dbContext.Rooms
-            where item.Id == new ObjectId(roomId)
-            select item;
+        bool result = await roomService.DeleteRoom(roomId);
 
-        Room? room = await query.FirstOrDefaultAsync();
-
-        if (room is null)
+        if (result)
         {
-            return NotFound(new ExceptionMessage("Target room doesn't exist."));
+            return NoContent();
         }
 
-        dbContext.Rooms.Remove(room);
-        await dbContext.SaveChangesAsync();
-
-        return NoContent();
+        return NotFound("指定的房间不存在！");
     }
 }

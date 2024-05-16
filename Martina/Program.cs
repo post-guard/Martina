@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Martina.Abstractions;
 using Martina.Extensions;
 using Martina.Models;
 using Martina.Services;
@@ -20,7 +21,7 @@ if (connectionString is null)
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.DocInclusionPredicate((name, api) => api.HttpMethod != null);
+    options.DocInclusionPredicate((_, api) => api.HttpMethod != null);
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
         Description = "Need 'Authorization' header using JWT token.",
@@ -68,6 +69,9 @@ builder.Services.AddHostedService<LifetimeService>(provider => provider.GetRequi
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<CheckinService>();
 builder.Services.AddScoped<RoomService>();
+builder.Services.AddSingleton<DefaultSchedular>();
+builder.Services.AddSingleton<ISchedular>(provider => provider.GetRequiredService<DefaultSchedular>());
+builder.Services.AddHostedService<DefaultSchedular>(provider => provider.GetRequiredService<DefaultSchedular>());
 builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CheckinHandler>();
 

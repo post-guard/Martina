@@ -27,7 +27,7 @@ public class PermissionResponse
     /// </summary>
     [Required]
     [JsonPropertyName("airconAdmin")]
-    public bool AirConditionorAdministrator { get; set; }
+    public bool AirConditionerAdministrator { get; set; }
 
     /// <summary>
     /// 用户是否为账单管理员

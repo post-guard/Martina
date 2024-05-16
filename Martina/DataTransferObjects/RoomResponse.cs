@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Martina.Entities;
+using Martina.Models;
 
 namespace Martina.DataTransferObjects;
 
@@ -36,7 +37,7 @@ public class RoomResponse
     /// 房间的空调状态
     /// </summary>
     [Required]
-    public AirConditionorResponse AirConditionor { get; set; } = new();
+    public AirConditionerResponse AirConditioner { get; set; } = new();
 
     /// <summary>
     /// 房间当前的入住状态
@@ -48,15 +49,16 @@ public class RoomResponse
 
     }
 
-    public RoomResponse(Room room)
+    public RoomResponse(Room room, AirConditionerState state)
     {
         RoomId = room.Id.ToString();
         RoomName = room.RoomName;
         PricePerDay = room.Price;
         RoomBaiscTemperature = room.RoomBasicTemperature;
+        AirConditioner = new AirConditionerResponse(state);
     }
 
-    public RoomResponse(Room room, CheckinRecord record) : this(room)
+    public RoomResponse(Room room, CheckinRecord record, AirConditionerState state) : this(room, state)
     {
         CheckinStatus = new CheckinResponse(record);
     }
