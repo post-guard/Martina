@@ -2,10 +2,14 @@
 using Martina.Entities;
 using Martina.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Martina.Services;
 
-public class CheckinHandler(RoomService roomService) : AuthorizationHandler<CheckinRequirement, Room>
+public class CheckinHandler(
+    RoomService roomService,
+    MartinaDbContext dbContext)
+    : AuthorizationHandler<CheckinRequirement, Room>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
         CheckinRequirement requirement,
@@ -15,6 +19,16 @@ public class CheckinHandler(RoomService roomService) : AuthorizationHandler<Chec
 
         if (userId is null)
         {
+            return;
+        }
+
+        User? user = await dbContext.Users.AsNoTracking()
+            .Where(u => u.UserId == userId.Value)
+            .FirstOrDefaultAsync();
+
+        if (user is { Permission.IsAdministrator: true } || user is { Permission.AirConditionorAdministrator: true })
+        {
+            context.Succeed(requirement);
             return;
         }
 

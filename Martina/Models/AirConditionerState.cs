@@ -8,6 +8,8 @@ public class AirConditionerState(Room room, bool cooling)
 {
     public ObjectId RoomId { get; } = room.Id;
 
+    public string RoomName { get; } = room.RoomName;
+
     public bool Cooling { get; } = cooling;
 
     public float CurrentTemperature { get; set; } = room.RoomBasicTemperature;

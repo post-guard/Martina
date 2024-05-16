@@ -30,6 +30,7 @@ public class AirConditionerController(
     /// </remarks>
     /// <returns></returns>
     [HttpPost("{roomId}")]
+    [Authorize]
     public async Task<IActionResult> RequestAirConditionor([FromRoute] string roomId,
         [FromBody] AirConditionerRequest request)
     {
@@ -70,18 +71,8 @@ public class AirConditionerController(
 
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        List<AirConditionerResponse> responses = [];
-
-        foreach (AirConditionerState state in schedular.States.Values)
-        {
-            responses.Add(new AirConditionerResponse(state));
-        }
-
-        Memory<byte> sendMessage =
-            JsonSerializer.SerializeToUtf8Bytes(responses, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         CancellationTokenSource stoppingTokenSource = new();
-
-        Task sendTask = SendAirConditionorInformation(sendMessage, webSocket, stoppingTokenSource.Token);
+        Task sendTask = SendRoomsInformation(webSocket, stoppingTokenSource.Token);
 
         byte[] buffer = new byte[1024 * 4];
 
@@ -98,6 +89,24 @@ public class AirConditionerController(
                     CancellationToken.None);
                 break;
             }
+        }
+    }
+
+    private async Task SendRoomsInformation(WebSocket webSocket, CancellationToken stoppingToken)
+    {
+        using PeriodicTimer timer = new(TimeSpan.FromSeconds(5));
+
+        try
+        {
+            await webSocket.SendAsync(GenerateMessage(), WebSocketMessageType.Text, true, stoppingToken);
+
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                await webSocket.SendAsync(GenerateMessage(), WebSocketMessageType.Text, true, stoppingToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 
@@ -130,11 +139,7 @@ public class AirConditionerController(
 
         CancellationTokenSource stoppingTokenSource = new();
 
-        Memory<byte> sendMessage = JsonSerializer.SerializeToUtf8Bytes(
-            new AirConditionerResponse { RoomId = room.Id.ToString(), Opening = false },
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
-
-        Task sendTask = SendAirConditionorInformation(sendMessage, webSocket, stoppingTokenSource.Token);
+        Task sendTask = SendRoomInformation(room.Id, webSocket, stoppingTokenSource.Token);
         byte[] buffer = new byte[1024 * 4];
 
         while (true)
@@ -154,21 +159,37 @@ public class AirConditionerController(
         }
     }
 
-    private async Task SendAirConditionorInformation(Memory<byte> content, WebSocket webSocket, CancellationToken token)
+    private async Task SendRoomInformation(ObjectId roomId, WebSocket webSocket, CancellationToken stoppingToken)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromSeconds(10));
+        using PeriodicTimer timer = new(TimeSpan.FromSeconds(5));
 
         try
         {
-            await webSocket.SendAsync(content, WebSocketMessageType.Text, true, token);
+            await webSocket.SendAsync(GenerateMessage(roomId), WebSocketMessageType.Text, true, stoppingToken);
 
-            while (await timer.WaitForNextTickAsync(token))
+            while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                await webSocket.SendAsync(content, WebSocketMessageType.Text, true, token);
+                await webSocket.SendAsync(GenerateMessage(roomId), WebSocketMessageType.Text, true, stoppingToken);
             }
         }
         catch (OperationCanceledException)
         {
         }
+    }
+
+    private Memory<byte> GenerateMessage()
+    {
+        List<AirConditionerResponse> response = schedular.States.Values
+            .Select(s => new AirConditionerResponse(s))
+            .ToList();
+
+        return JsonSerializer.SerializeToUtf8Bytes(response, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+    }
+
+    private Memory<byte> GenerateMessage(ObjectId roomId)
+    {
+        AirConditionerResponse response = new(schedular.States[roomId]);
+
+        return JsonSerializer.SerializeToUtf8Bytes(response, new JsonSerializerOptions(JsonSerializerDefaults.Web));
     }
 }

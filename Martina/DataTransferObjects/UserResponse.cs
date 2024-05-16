@@ -33,7 +33,7 @@ public class UserResponse
     /// <summary>
     /// 用户当前的入住记录
     /// </summary>
-    public CheckinResponse Checkin { get; set; } = new();
+    public CheckinResponse? Checkin { get; set; }
 
     public UserResponse()
     {
