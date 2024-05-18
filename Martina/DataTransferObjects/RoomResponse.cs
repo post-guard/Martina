@@ -25,13 +25,13 @@ public class RoomResponse
     /// 房间的单价
     /// </summary>
     [Required]
-    public float PricePerDay { get; set; }
+    public decimal PricePerDay { get; set; }
 
     /// <summary>
     /// 房间的基础环境温度
     /// </summary>
     [Required]
-    public float RoomBaiscTemperature { get; set; }
+    public decimal RoomBaiscTemperature { get; set; }
 
     /// <summary>
     /// 房间的空调状态

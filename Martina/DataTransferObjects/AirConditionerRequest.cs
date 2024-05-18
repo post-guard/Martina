@@ -14,7 +14,7 @@ public class AirConditionerRequest
     /// <summary>
     /// 要求的目标的温度
     /// </summary>
-    public float TargetTemperature { get; set; }
+    public decimal TargetTemperature { get; set; }
 
     /// <summary>
     /// 要求的目标风速

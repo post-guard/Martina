@@ -13,23 +13,29 @@ public class AirConditionerResponse
     public string RoomId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 空调是否开启
+    /// 空调当前的状态
     /// </summary>
     [Required]
-    public bool Opening { get; set; }
+    public AirConditionerStatus Status { get; set; } = AirConditionerStatus.Closed;
 
     /// <summary>
     /// 房间的当前温度
     /// </summary>
     [Required]
-    public float Temperature { get; set; }
+    public decimal Temperature { get; set; }
+
+    /// <summary>
+    /// 空调是在制冷还是在制热
+    /// </summary>
+    [Required]
+    public bool Cooling { get; set; }
 
     /// <summary>
     /// 空调的目标温度
     /// 当空调开启时有效
     /// </summary>
     [Required]
-    public float TargetTemperature { get; set; }
+    public decimal TargetTemperature { get; set; }
 
     /// <summary>
     /// 空调的风速
@@ -38,12 +44,6 @@ public class AirConditionerResponse
     [Required]
     public FanSpeed Speed { get; set; }
 
-    /// <summary>
-    /// 空调是在制冷还是在制热
-    /// 当空调开启时有效
-    /// </summary>
-    [Required]
-    public bool Cooling { get; set; }
 
     public AirConditionerResponse()
     {
@@ -51,11 +51,11 @@ public class AirConditionerResponse
 
     public AirConditionerResponse(AirConditionerState state)
     {
-        RoomId = state.RoomId.ToString();
+        RoomId = state.Room.Id.ToString();
+        Cooling = state.Cooling;
+        Status = state.Status;
         Temperature = state.CurrentTemperature;
         TargetTemperature = state.TargetTemperature;
         Speed = state.Speed;
-        Cooling = state.Cooling;
-        Opening = state.Openning;
     }
 }

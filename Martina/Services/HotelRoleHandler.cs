@@ -75,7 +75,7 @@ public class HotelRoleHandler(MartinaDbContext dbContext) : AuthorizationHandler
             }
         }
 
-        if ((requirement.HotelRole & Roles.AirConditionorAdministrator) == Roles.AirConditionorAdministrator)
+        if ((requirement.HotelRole & Roles.AirConditionerAdministrator) == Roles.AirConditionerAdministrator)
         {
             if (user.Permission.AirConditionorAdministrator)
             {

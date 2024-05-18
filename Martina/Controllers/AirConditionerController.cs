@@ -17,6 +17,7 @@ namespace Martina.Controllers;
 public class AirConditionerController(
     IAuthorizationService authorizationService,
     ISchedular schedular,
+    AirConditionerManageService airConditionerManageService,
     MartinaDbContext dbContext,
     ILogger<AirConditionerController> logger) : ControllerBase
 {
@@ -53,6 +54,11 @@ public class AirConditionerController(
         if (!result.Succeeded)
         {
             return Forbid();
+        }
+
+        if (!airConditionerManageService.VolidateAirConditionerRequest(request, out string? message))
+        {
+            return BadRequest(new ExceptionMessage(message));
         }
 
         logger.LogInformation("Receive from {}: {}.", room.RoomName, request);
@@ -94,7 +100,7 @@ public class AirConditionerController(
 
     private async Task SendRoomsInformation(WebSocket webSocket, CancellationToken stoppingToken)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromSeconds(5));
+        using PeriodicTimer timer = new(TimeSpan.FromSeconds(1));
 
         try
         {
@@ -161,7 +167,7 @@ public class AirConditionerController(
 
     private async Task SendRoomInformation(ObjectId roomId, WebSocket webSocket, CancellationToken stoppingToken)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromSeconds(5));
+        using PeriodicTimer timer = new(TimeSpan.FromSeconds(1));
 
         try
         {

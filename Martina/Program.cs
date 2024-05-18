@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Martina.Abstractions;
 using Martina.Extensions;
 using Martina.Models;
 using Martina.Services;
@@ -63,15 +62,16 @@ builder.Services.Configure<JsonWebTokenOption>(
     builder.Configuration.GetSection(JsonWebTokenOption.OptionName));
 builder.Services.Configure<SystemUserOption>(
     builder.Configuration.GetSection(SystemUserOption.OptionName));
+builder.Services.Configure<TimeOption>(
+    builder.Configuration.GetSection(TimeOption.OptionName));
 builder.Services.AddSingleton<SecretsService>();
 builder.Services.AddSingleton<LifetimeService>();
 builder.Services.AddHostedService<LifetimeService>(provider => provider.GetRequiredService<LifetimeService>());
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<CheckinService>();
 builder.Services.AddScoped<RoomService>();
-builder.Services.AddSingleton<DefaultSchedular>();
-builder.Services.AddSingleton<ISchedular>(provider => provider.GetRequiredService<DefaultSchedular>());
-builder.Services.AddHostedService<DefaultSchedular>(provider => provider.GetRequiredService<DefaultSchedular>());
+builder.Services.AddSingleton<AirConditionerManageService>();
+builder.Services.AddBuptSchedular();
 builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CheckinHandler>();
 

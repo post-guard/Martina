@@ -19,8 +19,8 @@ public static class AuthorizationOptionsExtensions
         options.AddPolicy("RoomAdministrator", policy =>
             policy.AddRequirements(new HotelRoleRequirement(Roles.RoomAdministrator)));
 
-        options.AddPolicy("AirConditionorAdministrator", policy =>
-            policy.AddRequirements(new HotelRoleRequirement(Roles.AirConditionorAdministrator)));
+        options.AddPolicy("AirConditionerAdministrator", policy =>
+            policy.AddRequirements(new HotelRoleRequirement(Roles.AirConditionerAdministrator)));
 
         options.AddPolicy("BillAdministrator", policy =>
             policy.AddRequirements(new HotelRoleRequirement(Roles.BillAdministrator)));

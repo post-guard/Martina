@@ -10,7 +10,7 @@ public class Room
     [MaxLength(100)]
     public string RoomName { get; set; } = string.Empty;
 
-    public float Price { get; set; }
+    public decimal Price { get; set; }
 
-    public float RoomBasicTemperature { get; set; }
+    public decimal RoomBasicTemperature { get; set; }
 }

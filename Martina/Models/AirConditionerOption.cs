@@ -2,13 +2,19 @@
 
 public class AirConditionerOption
 {
-    public const float Tolerance = 0.1f;
+    public decimal MinTemperature { get; set; }
 
-    public const float HighSpeed = 0.1f;
+    public decimal MaxTemperature { get; set; }
 
-    public const float MiddleSpeed = 0.05f;
+    public decimal DefaultTemperature { get; set; }
 
-    public const float LowSpeed = 1f / 30f;
+    public decimal DefaultFanSpeed { get; set; }
 
-    public const float BackSpeed = 0.05f;
+    public decimal HighSpeedPerDegree { get; set; } = decimal.One;
+
+    public decimal MiddleSpeedPerDegree { get; set; } = 2;
+
+    public decimal LowSpeedPerDegree { get; set; } = 3;
+
+    public decimal BackSpeed { get; set; } = 1;
 }

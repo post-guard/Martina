@@ -1,4 +1,5 @@
-﻿using Martina.DataTransferObjects;
+﻿using Martina.Abstractions;
+using Martina.DataTransferObjects;
 using Martina.Exceptions;
 using Martina.Tests.Fixtures;
 using Martina.Tests.Utils;
@@ -24,8 +25,9 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
 
         UserService userService = new(dbContext, new SecretsService(_jsonWebOTokenOption), _logger);
         CheckinService checkinService = new(dbContext, userService);
-        RoomService roomService = new(dbContext);
-        RoomController roomController = new(dbContext, roomService);
+        ISchedular schedular = MockCreater.CreateSchedularMock(dbContext);
+        RoomService roomService = new(dbContext, schedular);
+        RoomController roomController = new(roomService);
 
         IActionResult result = await roomController.CreateRoom(new CreateRoomRequest
         {
@@ -58,8 +60,9 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
 
         UserService userService = new(dbContext, new SecretsService(_jsonWebOTokenOption), _logger);
         CheckinService checkinService = new(dbContext, userService);
-        RoomService roomService = new(dbContext);
-        RoomController roomController = new(dbContext, roomService);
+        ISchedular schedular = MockCreater.CreateSchedularMock(dbContext);
+        RoomService roomService = new(dbContext, schedular);
+        RoomController roomController = new(roomService);
 
         IActionResult result = await roomController.CreateRoom(new CreateRoomRequest
         {

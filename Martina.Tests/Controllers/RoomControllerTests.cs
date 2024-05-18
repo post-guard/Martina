@@ -1,5 +1,7 @@
-﻿using Martina.DataTransferObjects;
+﻿using Martina.Abstractions;
+using Martina.DataTransferObjects;
 using Martina.Tests.Fixtures;
+using Martina.Tests.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Martina.Tests.Controllers;
@@ -9,12 +11,13 @@ public class RoomControllerTests(DatabaseFixture databaseFixture) : IClassFixtur
     [Theory]
     [InlineData("101", 100, 25)]
     [InlineData("102", 120, 23)]
-    public async Task CreateRoomTest(string roomName, float price, float temperature)
+    public async Task CreateRoomTest(string roomName, decimal price, decimal temperature)
     {
         await using MartinaDbContext context = databaseFixture.CreateDbContext();
+        ISchedular schedular = MockCreater.CreateSchedularMock(context);
 
-        RoomService roomService = new(context);
-        RoomController controller = new(context, roomService);
+        RoomService roomService = new(context, schedular);
+        RoomController controller = new(roomService);
 
         await controller.CreateRoom(new CreateRoomRequest
         {
@@ -22,16 +25,16 @@ public class RoomControllerTests(DatabaseFixture databaseFixture) : IClassFixtur
         });
 
         Assert.Contains(context.Rooms, r =>
-            r.RoomName == roomName && Math.Abs(r.RoomBasicTemperature - temperature) < 0.01 &&
-            Math.Abs(r.Price - price) < 0.01);
+            r.RoomName == roomName && r.RoomBasicTemperature == temperature &&
+            r.Price == price);
 
         IActionResult result = await controller.ListAllRooms();
         OkObjectResult okObjectResult = Assert.IsType<OkObjectResult>(result);
         List<RoomResponse> rooms = Assert.IsAssignableFrom<IEnumerable<RoomResponse>>(okObjectResult.Value).ToList();
 
         Assert.Contains(rooms, r =>
-            r.RoomName == roomName && Math.Abs(r.RoomBaiscTemperature - temperature) < 0.01 &&
-            Math.Abs(r.PricePerDay - price) < 0.01);
+            r.RoomName == roomName && r.RoomBaiscTemperature == temperature &&
+            r.PricePerDay == price);
 
         foreach (RoomResponse room in rooms)
         {
@@ -44,9 +47,10 @@ public class RoomControllerTests(DatabaseFixture databaseFixture) : IClassFixtur
     public async Task NotFountTest()
     {
         await using MartinaDbContext context = databaseFixture.CreateDbContext();
+        ISchedular schedular = MockCreater.CreateSchedularMock(context);
 
-        RoomService roomService = new(context);
-        RoomController controller = new(context, roomService);
+        RoomService roomService = new(context, schedular);
+        RoomController controller = new(roomService);
 
         IActionResult result = await controller.GetRoom("asdasdasd");
         Assert.IsType<NotFoundObjectResult>(result);
