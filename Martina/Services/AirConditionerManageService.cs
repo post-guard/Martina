@@ -1,6 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Martina.DataTransferObjects;
+using Martina.Entities;
 using Martina.Models;
+using MongoDB.Bson;
 
 namespace Martina.Services;
 
@@ -10,7 +13,9 @@ public class AirConditionerManageService
 
     public AirConditionerOption Option { get; set; } = new();
 
-    public bool VolidateAirConditionerRequest(AirConditionerRequest request,[NotNullWhen(false)] out string? message)
+    public ConcurrentDictionary<ObjectId, Room> Rooms { get; } = new();
+
+    public bool VolidateAirConditionerRequest(ObjectId roomId, AirConditionerRequest request,[NotNullWhen(false)] out string? message)
     {
         if (!Opening)
         {
@@ -28,6 +33,26 @@ public class AirConditionerManageService
         {
             message = $"无法设置为低于{Option.MaxTemperature}度";
             return false;
+        }
+
+        if (Rooms.TryGetValue(roomId, out Room? room))
+        {
+            if (Option.Cooling)
+            {
+                if (room.RoomBasicTemperature >= request.TargetTemperature)
+                {
+                    message = "无法设置为高于室温的温度";
+                    return false;
+                }
+            }
+            else
+            {
+                if (room.RoomBasicTemperature <= request.TargetTemperature)
+                {
+                    message = "无法设置为低于室温的温度";
+                    return false;
+                }
+            }
         }
 
         message = null;

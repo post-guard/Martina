@@ -21,15 +21,13 @@ public class BuptSchedular(
 
     private readonly LinkedList<AirConditionerService> _waitingQueue = [];
 
-    private readonly ConcurrentDictionary<ObjectId, Room> _rooms = [];
-
     private readonly ConcurrentQueue<AirConditionerService> _pendingRequests = [];
 
     public ConcurrentDictionary<ObjectId, AirConditionerState> States { get; } = [];
 
     public Task SendRequest(ObjectId roomId, AirConditionerRequest request)
     {
-        AirConditionerService service = new(_rooms[roomId], request);
+        AirConditionerService service = new(airConditionerManageService.Rooms[roomId], request);
         _pendingRequests.Enqueue(service);
 
         return Task.CompletedTask;
@@ -44,14 +42,14 @@ public class BuptSchedular(
         logger.LogInformation("Reset air conditioner controller system.");
 
         States.Clear();
-        _rooms.Clear();
+        airConditionerManageService.Rooms.Clear();
         _serviceQueue.Clear();
         _waitingQueue.Clear();
 
         foreach (Room room in context.Rooms)
         {
-            _rooms.TryAdd(room.Id, room);
-            States.TryAdd(room.Id, new AirConditionerState(room, true));
+            airConditionerManageService.Rooms.TryAdd(room.Id, room);
+            States.TryAdd(room.Id, new AirConditionerState(room, airConditionerManageService.Option.Cooling));
         }
     }
 
@@ -63,22 +61,16 @@ public class BuptSchedular(
         {
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                // 进行温度的更新
                 UpdateTemperature();
 
-                // 处理到达目标温度的请求
                 HandleOnTargetTemperature();
 
-                // 处理未处理的请求
                 HandlePendingRequests();
 
-                // 移出时间片到达的请求
                 RemoveUptoTimeService();
 
-                // 处理关机的请求
                 HandleShutdownRequest();
 
-                // 进行优先级调度
                 PrioritySchedule();
             }
         }
@@ -87,6 +79,9 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 处理达到目标温度的请求
+    /// </summary>
     private void HandleOnTargetTemperature()
     {
         LinkedListNode<AirConditionerService>? node = _serviceQueue.First;
@@ -123,6 +118,9 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 处理缓冲队列中的请求
+    /// </summary>
     private void HandlePendingRequests()
     {
         while (_pendingRequests.TryDequeue(out AirConditionerService? pendingService))
@@ -174,6 +172,9 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 移除达到时间片的请求
+    /// </summary>
     private void RemoveUptoTimeService()
     {
         LinkedListNode<AirConditionerService>? node = _serviceQueue.First;
@@ -209,6 +210,9 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 处理关机的请求
+    /// </summary>
     private void HandleShutdownRequest()
     {
         LinkedListNode<AirConditionerService>? node = _serviceQueue.First;
@@ -258,6 +262,9 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 进行优先级的调度
+    /// </summary>
     private void PrioritySchedule()
     {
         LinkedListNode<AirConditionerService>? waitingNode = _waitingQueue.First;
@@ -294,6 +301,9 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 更新各个房间的温度
+    /// </summary>
     private void UpdateTemperature()
     {
         logger.LogServiceQueue("Current service queue: ", _serviceQueue);

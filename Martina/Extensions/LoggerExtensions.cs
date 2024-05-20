@@ -9,6 +9,6 @@ public static class LoggerExtensions
     {
         IEnumerable<string> roomNames = services.Select(s => s.Room.RoomName);
 
-        logger.LogInformation("{} {}", message, string.Join(',', roomNames));
+        logger.LogDebug("{} {}", message, string.Join(',', roomNames));
     }
 }

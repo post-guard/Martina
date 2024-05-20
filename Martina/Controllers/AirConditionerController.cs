@@ -56,7 +56,7 @@ public class AirConditionerController(
             return Forbid();
         }
 
-        if (!airConditionerManageService.VolidateAirConditionerRequest(request, out string? message))
+        if (!airConditionerManageService.VolidateAirConditionerRequest(roomObjectId, request, out string? message))
         {
             return BadRequest(new ExceptionMessage(message));
         }
