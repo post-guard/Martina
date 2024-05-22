@@ -27,7 +27,7 @@ public class AirConditionerManageController(
     [Authorize]
     public IActionResult GetConfiguration()
     {
-        if (airConditionerManageService.Opening)
+        if (!airConditionerManageService.Opening)
         {
             return BadRequest(new ExceptionMessage("尚未开启空调系统"));
         }
@@ -46,7 +46,7 @@ public class AirConditionerManageController(
     [HttpPut]
     [ProducesResponseType<AirConditionerOption>(200)]
     [ProducesResponseType<ExceptionMessage>(400)]
-    public IActionResult ConfigureAirCondinioner([FromBody] AirConditionerOption option)
+    public async Task<IActionResult> ConfigureAirCondinioner([FromBody] AirConditionerOption option)
     {
         if (!airConditionerManageService.Opening)
         {
@@ -54,6 +54,7 @@ public class AirConditionerManageController(
         }
 
         airConditionerManageService.Option = option;
+        await schedular.Reset();
 
         return Ok(airConditionerManageService.Option);
     }

@@ -25,7 +25,7 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
 
         UserService userService = new(dbContext, new SecretsService(_jsonWebOTokenOption), _logger);
         CheckinService checkinService = new(dbContext, userService);
-        ISchedular schedular = MockCreater.CreateSchedularMock(dbContext);
+        ISchedular schedular = MockCreater.CreateSchedularMock(dbContext, new AirConditionerOption());
         RoomService roomService = new(dbContext, schedular);
         RoomController roomController = new(roomService);
 
@@ -60,7 +60,7 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
 
         UserService userService = new(dbContext, new SecretsService(_jsonWebOTokenOption), _logger);
         CheckinService checkinService = new(dbContext, userService);
-        ISchedular schedular = MockCreater.CreateSchedularMock(dbContext);
+        ISchedular schedular = MockCreater.CreateSchedularMock(dbContext, new AirConditionerOption());
         RoomService roomService = new(dbContext, schedular);
         RoomController roomController = new(roomService);
 

@@ -12,6 +12,8 @@ public sealed class MartinaDbContext(DbContextOptions<MartinaDbContext> options)
 
     public DbSet<CheckinRecord> CheckinRecords { get; init; }
 
+    public DbSet<AirConditionerRecord> AirConditionerRecords { get; init; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

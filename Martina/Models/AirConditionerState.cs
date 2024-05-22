@@ -4,17 +4,17 @@ using MongoDB.Bson;
 
 namespace Martina.Models;
 
-public class AirConditionerState(Room room, bool cooling)
+public class AirConditionerState(Room room, AirConditionerOption option)
 {
     public Room Room { get; } = room;
 
-    public bool Cooling { get; } = cooling;
+    public bool Cooling { get; } = option.Cooling;
 
     public decimal CurrentTemperature { get; set; } = room.RoomBasicTemperature;
 
-    public decimal TargetTemperature { get; set; } = room.RoomBasicTemperature;
+    public decimal TargetTemperature { get; set; } = option.DefaultTemperature;
 
-    public FanSpeed Speed { get; set; } = FanSpeed.Low;
+    public FanSpeed Speed { get; set; } = option.DefaultFanSpeed;
 
     public AirConditionerStatus Status { get; set; } = AirConditionerStatus.Closed;
 

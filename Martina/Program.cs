@@ -74,6 +74,8 @@ builder.Services.AddSingleton<AirConditionerManageService>();
 builder.Services.AddBuptSchedular();
 builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CheckinHandler>();
+builder.Services.AddHostedService<TimeService>();
+builder.Services.AddScoped<BillService>();
 
 WebApplication application = builder.Build();
 

@@ -25,7 +25,7 @@ public static class MockCreater
         return mock;
     }
 
-    public static ISchedular CreateSchedularMock(MartinaDbContext dbContext)
+    public static ISchedular CreateSchedularMock(MartinaDbContext dbContext, AirConditionerOption option)
     {
         Mock<ISchedular> mock = new();
 
@@ -36,7 +36,7 @@ public static class MockCreater
 
                 foreach (Room room in dbContext.Rooms.AsNoTracking())
                 {
-                    states.TryAdd(room.Id, new AirConditionerState(room, true));
+                    states.TryAdd(room.Id, new AirConditionerState(room, option));
                 }
 
                 return states;

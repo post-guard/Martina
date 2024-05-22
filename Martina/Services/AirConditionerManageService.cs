@@ -23,6 +23,13 @@ public class AirConditionerManageService
             return false;
         }
 
+        if (!request.Open)
+        {
+            // 如果是关机请求就不校验了
+            message = null;
+            return true;
+        }
+
         if (request.TargetTemperature < Option.MinTemperature)
         {
             message = $"无法设置为小于{Option.MinTemperature}度";
@@ -39,7 +46,7 @@ public class AirConditionerManageService
         {
             if (Option.Cooling)
             {
-                if (room.RoomBasicTemperature >= request.TargetTemperature)
+                if (room.RoomBasicTemperature <= request.TargetTemperature)
                 {
                     message = "无法设置为高于室温的温度";
                     return false;
@@ -47,7 +54,7 @@ public class AirConditionerManageService
             }
             else
             {
-                if (room.RoomBasicTemperature <= request.TargetTemperature)
+                if (room.RoomBasicTemperature >= request.TargetTemperature)
                 {
                     message = "无法设置为低于室温的温度";
                     return false;

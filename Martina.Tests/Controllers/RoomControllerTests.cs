@@ -14,7 +14,7 @@ public class RoomControllerTests(DatabaseFixture databaseFixture) : IClassFixtur
     public async Task CreateRoomTest(string roomName, decimal price, decimal temperature)
     {
         await using MartinaDbContext context = databaseFixture.CreateDbContext();
-        ISchedular schedular = MockCreater.CreateSchedularMock(context);
+        ISchedular schedular = MockCreater.CreateSchedularMock(context, new AirConditionerOption());
 
         RoomService roomService = new(context, schedular);
         RoomController controller = new(roomService);
@@ -47,7 +47,7 @@ public class RoomControllerTests(DatabaseFixture databaseFixture) : IClassFixtur
     public async Task NotFountTest()
     {
         await using MartinaDbContext context = databaseFixture.CreateDbContext();
-        ISchedular schedular = MockCreater.CreateSchedularMock(context);
+        ISchedular schedular = MockCreater.CreateSchedularMock(context, new AirConditionerOption());
 
         RoomService roomService = new(context, schedular);
         RoomController controller = new(roomService);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Channels;
 using Martina.Abstractions;
 using Martina.DataTransferObjects;
 using Martina.Entities;
@@ -22,6 +23,12 @@ public class BuptSchedular(
     private readonly LinkedList<AirConditionerService> _waitingQueue = [];
 
     private readonly ConcurrentQueue<AirConditionerService> _pendingRequests = [];
+
+    private readonly Channel<AirConditionerRecord> _recordsChannel =
+        Channel.CreateUnbounded<AirConditionerRecord>(new UnboundedChannelOptions
+        {
+            SingleReader = true
+        });
 
     public ConcurrentDictionary<ObjectId, AirConditionerState> States { get; } = [];
 
@@ -49,8 +56,22 @@ public class BuptSchedular(
         foreach (Room room in context.Rooms)
         {
             airConditionerManageService.Rooms.TryAdd(room.Id, room);
-            States.TryAdd(room.Id, new AirConditionerState(room, airConditionerManageService.Option.Cooling));
+            States.TryAdd(room.Id, new AirConditionerState(room, airConditionerManageService.Option));
         }
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        await Reset();
+
+        // 下面这些任务都是并行运行的
+        List<Task> runingTasks =
+        [
+            Schedule(stoppingToken),
+            WirteRecordToDatabase(stoppingToken)
+        ];
+
+        await Task.WhenAll(runingTasks);
     }
 
     private async Task Schedule(CancellationToken stoppingToken)
@@ -79,6 +100,32 @@ public class BuptSchedular(
         }
     }
 
+    private async Task WirteRecordToDatabase(CancellationToken stoppingToken)
+    {
+        using IServiceScope scope = provider.CreateScope();
+        await using MartinaDbContext context = scope.ServiceProvider.GetRequiredService<MartinaDbContext>();
+
+        while (await _recordsChannel.Reader.WaitToReadAsync(stoppingToken))
+        {
+            while (_recordsChannel.Reader.TryRead(out AirConditionerRecord? record))
+            {
+                if (record.BeginTemperature == record.EndTemperature)
+                {
+                    // 跳过没有温差的详单
+                    continue;
+                }
+
+                // 首先执行一些较为耗时的计算任务
+                record.Id = ObjectId.GenerateNewId();
+                record.Price = airConditionerManageService.Option.PricePerDegree;
+                record.Fee = decimal.Abs(record.BeginTemperature - record.EndTemperature) * record.Price;
+
+                await context.AirConditionerRecords.AddAsync(record, stoppingToken);
+                await context.SaveChangesAsync(stoppingToken);
+            }
+        }
+    }
+
     /// <summary>
     /// 处理达到目标温度的请求
     /// </summary>
@@ -95,6 +142,7 @@ public class BuptSchedular(
                     : state.CurrentTemperature >= state.TargetTemperature)
             {
                 // 到达目标温度
+                // TODO: 在到达目标温度之后该干嘛？
                 state.Status = AirConditionerStatus.Closed;
 
                 LinkedListNode<AirConditionerService> removed = node;
@@ -107,15 +155,7 @@ public class BuptSchedular(
             }
         }
 
-        while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
-        {
-            AirConditionerService service = _waitingQueue.First.Value;
-            AirConditionerState state = States[service.Room.Id];
-
-            state.Status = AirConditionerStatus.Working;
-            _serviceQueue.AddLast(service);
-            _waitingQueue.RemoveFirst();
-        }
+        FillServingQueue();
     }
 
     /// <summary>
@@ -182,16 +222,13 @@ public class BuptSchedular(
         // 从服务队列中将时间片到达的服务加入等待队列
         while (node is not null)
         {
-            AirConditionerState state = States[node.Value.Room.Id];
-
             if (node.Value.TimeToLive == 0)
             {
                 LinkedListNode<AirConditionerService> removedNode = node;
                 node = node.Next;
+
                 removedNode.Value.TimeToLive = 20;
-                state.Status = AirConditionerStatus.Waiting;
-                _waitingQueue.AddLast(removedNode.Value);
-                _serviceQueue.Remove(removedNode);
+                MoveToWaitingQueue(removedNode);
             }
             else
             {
@@ -199,15 +236,7 @@ public class BuptSchedular(
             }
         }
 
-        while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
-        {
-            AirConditionerService service = _waitingQueue.First.Value;
-            AirConditionerState state = States[service.Room.Id];
-
-            state.Status = AirConditionerStatus.Working;
-            _serviceQueue.AddLast(service);
-            _waitingQueue.RemoveFirst();
-        }
+        FillServingQueue();
     }
 
     /// <summary>
@@ -221,11 +250,23 @@ public class BuptSchedular(
         {
             if (!node.Value.Opening)
             {
-                AirConditionerState state = States[node.Value.Room.Id];
-                state.Status = AirConditionerStatus.Closed;
                 LinkedListNode<AirConditionerService> removedNode = node;
                 node = node.Next;
+
+                AirConditionerState state = States[removedNode.Value.Room.Id];
+                AirConditionerService service = removedNode.Value;
+                state.Status = AirConditionerStatus.Closed;
                 _serviceQueue.Remove(removedNode);
+                // 记录空调详单
+                _recordsChannel.Writer.TryWrite(new AirConditionerRecord
+                {
+                    RoomId = service.Room.Id,
+                    BeginTemperature = service.BeginTemperature,
+                    EndTemperature = state.CurrentTemperature,
+                    BeginTime = service.BeginTime,
+                    EndTime = TimeService.Now,
+                    Speed = service.Speed
+                });
             }
             else
             {
@@ -239,26 +280,18 @@ public class BuptSchedular(
         {
             if (!node.Value.Opening)
             {
-                AirConditionerState state = States[node.Value.Room.Id];
-                state.Status = AirConditionerStatus.Closed;
                 LinkedListNode<AirConditionerService> removedNode = node;
                 node = node.Next;
+
+                AirConditionerState state = States[removedNode.Value.Room.Id];
+                state.Status = AirConditionerStatus.Closed;
+
                 _waitingQueue.Remove(removedNode);
             }
             else
             {
                 node = node.Next;
             }
-        }
-
-        while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
-        {
-            AirConditionerService service = _waitingQueue.First.Value;
-            AirConditionerState state = States[service.Room.Id];
-
-            state.Status = AirConditionerStatus.Working;
-            _serviceQueue.AddLast(service);
-            _waitingQueue.RemoveFirst();
         }
     }
 
@@ -267,32 +300,32 @@ public class BuptSchedular(
     /// </summary>
     private void PrioritySchedule()
     {
-        LinkedListNode<AirConditionerService>? waitingNode = _waitingQueue.First;
+        bool changed = true;
 
-        while (waitingNode is not null)
+        while (changed)
         {
+            LinkedListNode<AirConditionerService>? waitingNode = _waitingQueue.First;
+            changed = false;
+
+            if (waitingNode is null)
+            {
+                break;
+            }
+
             LinkedListNode<AirConditionerService>? node = _serviceQueue.First;
 
             while (node is not null)
             {
                 if (node.Value.Speed < waitingNode.Value.Speed)
                 {
-                    // 找到一个优先级比他低
+                    // 找到一个优先级小于等待队列的
+                    changed = true;
 
-                    // 将服务队列中的移动到等待队列的末尾
-                    _waitingQueue.AddLast(node.Value);
-                    AirConditionerState state = States[node.Value.Room.Id];
-                    state.Status = AirConditionerStatus.Waiting;
-                    _serviceQueue.Remove(node);
+                    // 将服务队列中的移动到等待队列末尾
+                    MoveToWaitingQueue(node);
 
                     // 将等待队列中的移动到服务队列的末尾
-                    _serviceQueue.AddLast(waitingNode.Value);
-                    state = States[node.Value.Room.Id];
-                    state.Status = AirConditionerStatus.Working;
-                    LinkedListNode<AirConditionerService> removedNode = waitingNode;
-                    waitingNode = waitingNode.Next;
-                    _waitingQueue.Remove(removedNode);
-
+                    MoveToWorkingQueue(waitingNode);
                     break;
                 }
 
@@ -337,18 +370,7 @@ public class BuptSchedular(
 
             node.Value.TimeToLive -= 1;
 
-            if (state.OnTarget)
-            {
-                // 到达目标温度
-                state.Status = AirConditionerStatus.Closed;
-                LinkedListNode<AirConditionerService> removed = node;
-                node = node.Next;
-                _serviceQueue.Remove(removed);
-            }
-            else
-            {
-                node = node.Next;
-            }
+            node = node.Next;
         }
 
         foreach (AirConditionerState state in States.Values)
@@ -368,10 +390,56 @@ public class BuptSchedular(
         }
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    /// <summary>
+    /// 使用等待队列填充满服务队列
+    /// </summary>
+    private void FillServingQueue()
     {
-        await Reset();
+        while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
+        {
+            MoveToWorkingQueue(_waitingQueue.First);
+        }
+    }
 
-        await Schedule(stoppingToken);
+    /// <summary>
+    /// 将服务队列中的一个节点移动到等待队列末尾
+    /// </summary>
+    /// <param name="workingNode">服务队列中的一个节点</param>
+    private void MoveToWaitingQueue(LinkedListNode<AirConditionerService> workingNode)
+    {
+        AirConditionerState state = States[workingNode.Value.Room.Id];
+        state.Status = AirConditionerStatus.Waiting;
+
+        AirConditionerService service = workingNode.Value;
+        AirConditionerRecord record = new()
+        {
+            RoomId = state.Room.Id,
+            BeginTime = service.BeginTime,
+            EndTime = TimeService.Now,
+            Speed = service.Speed,
+            BeginTemperature = service.BeginTemperature,
+            EndTemperature = state.CurrentTemperature
+        };
+        _recordsChannel.Writer.TryWrite(record);
+
+        _waitingQueue.AddLast(workingNode.Value);
+        _serviceQueue.Remove(workingNode);
+    }
+
+    /// <summary>
+    /// 将等待队列中的一个节点移动到服务队列的末尾
+    /// </summary>
+    /// <param name="waitingNode"></param>
+    private void MoveToWorkingQueue(LinkedListNode<AirConditionerService> waitingNode)
+    {
+        AirConditionerState state = States[waitingNode.Value.Room.Id];
+        state.Status = AirConditionerStatus.Working;
+
+        AirConditionerService service = waitingNode.Value;
+        service.BeginTemperature = state.CurrentTemperature;
+        service.BeginTime = TimeService.Now;
+
+        _serviceQueue.AddLast(service);
+        _waitingQueue.Remove(waitingNode);
     }
 }

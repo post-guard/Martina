@@ -51,7 +51,7 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
     public async Task<CheckinRecord?> QueryRoomCurrentStatus(ObjectId roomId)
     {
         IQueryable<CheckinRecord> query = from item in dbContext.CheckinRecords.AsNoTracking()
-            where item.RoomId == roomId && item.BeginTime <= DateTimeOffset.Now && item.EndTime >= DateTimeOffset.Now
+            where item.RoomId == roomId && item.BeginTime <= TimeService.Now && item.EndTime >= TimeService.Now
             select item;
 
         return await query.FirstOrDefaultAsync();
@@ -60,7 +60,7 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
     public async Task<CheckinRecord?> QueryUserCurrentStatus(string userId)
     {
         IQueryable<CheckinRecord> query = from item in dbContext.CheckinRecords.AsNoTracking()
-            where item.UserId == userId && item.BeginTime <= DateTimeOffset.Now && item.EndTime >= DateTimeOffset.Now
+            where item.UserId == userId && item.BeginTime <= TimeService.Now && item.EndTime >= TimeService.Now
             select item;
 
         return await query.FirstOrDefaultAsync();

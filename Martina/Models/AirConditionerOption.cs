@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Martina.Enums;
 
 namespace Martina.Models;
 
@@ -32,7 +33,7 @@ public class AirConditionerOption
     /// 当前空调系统的默认风速
     /// </summary>
     [Required]
-    public decimal DefaultFanSpeed { get; set; }
+    public FanSpeed DefaultFanSpeed { get; set; }
 
     /// <summary>
     /// 高速风导致温度变化的速度
@@ -61,4 +62,9 @@ public class AirConditionerOption
     /// </summary>
     [Required]
     public decimal BackSpeed { get; set; } = 1;
+
+    /// <summary>
+    /// 每度温度变化的费用
+    /// </summary>
+    public decimal PricePerDegree { get; set; } = 1;
 }
