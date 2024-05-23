@@ -36,6 +36,12 @@ public class AirConditionerOption
     public FanSpeed DefaultFanSpeed { get; set; }
 
     /// <summary>
+    /// 回温之后再次加入工作队列的温差阈值
+    /// </summary>
+    [Required]
+    public decimal TemperatureThreshold { get; set; }
+
+    /// <summary>
     /// 高速风导致温度变化的速度
     /// 单位为分每度
     /// </summary>

@@ -44,4 +44,14 @@ public static class MockCreater
 
         return mock.Object;
     }
+
+    public static IOptions<TimeOption> CreateTimeOptionMock()
+    {
+        Mock<IOptions<TimeOption>> mock = new();
+
+        mock.SetupGet(t => t.Value)
+            .Returns(new TimeOption { Factor = 6 });
+
+        return mock.Object;
+    }
 }

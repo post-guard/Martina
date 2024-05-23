@@ -76,4 +76,22 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
 
         return record;
     }
+
+    /// <summary>
+    /// 查询指定范围内的空调记录
+    /// </summary>
+    /// <param name="roomId"></param>
+    /// <param name="begin"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public IEnumerable<AirConditionerRecord> QueryAirConditionerRecords(ObjectId roomId,
+        DateTimeOffset begin, DateTimeOffset end)
+    {
+        IQueryable<AirConditionerRecord> query = from item in dbContext.AirConditionerRecords.AsNoTracking()
+            where item.RoomId == roomId
+            where item.BeginTime >= begin && item.EndTime <= end
+            select item;
+
+        return query.ToList();
+    }
 }

@@ -25,10 +25,7 @@ public class BuptSchedular(
     private readonly ConcurrentQueue<AirConditionerService> _pendingRequests = [];
 
     private readonly Channel<AirConditionerRecord> _recordsChannel =
-        Channel.CreateUnbounded<AirConditionerRecord>(new UnboundedChannelOptions
-        {
-            SingleReader = true
-        });
+        Channel.CreateUnbounded<AirConditionerRecord>(new UnboundedChannelOptions { SingleReader = true });
 
     public ConcurrentDictionary<ObjectId, AirConditionerState> States { get; } = [];
 
@@ -142,12 +139,10 @@ public class BuptSchedular(
                     : state.CurrentTemperature >= state.TargetTemperature)
             {
                 // 到达目标温度
-                // TODO: 在到达目标温度之后该干嘛？
-                state.Status = AirConditionerStatus.Closed;
-
-                LinkedListNode<AirConditionerService> removed = node;
+                LinkedListNode<AirConditionerService> removedNode = node;
                 node = node.Next;
-                _serviceQueue.Remove(removed);
+
+                MoveToWaitingQueue(removedNode);
             }
             else
             {
@@ -227,7 +222,6 @@ public class BuptSchedular(
                 LinkedListNode<AirConditionerService> removedNode = node;
                 node = node.Next;
 
-                removedNode.Value.TimeToLive = 20;
                 MoveToWaitingQueue(removedNode);
             }
             else
@@ -318,15 +312,22 @@ public class BuptSchedular(
             {
                 if (node.Value.Speed < waitingNode.Value.Speed)
                 {
-                    // 找到一个优先级小于等待队列的
-                    changed = true;
+                    AirConditionerState state = States[node.Value.Room.Id];
 
-                    // 将服务队列中的移动到等待队列末尾
-                    MoveToWaitingQueue(node);
+                    if (decimal.Abs(state.CurrentTemperature - state.TargetTemperature) >=
+                        airConditionerManageService.Option.TemperatureThreshold)
+                    {
+                        // 找到一个优先级小于等待队列的
+                        // 且温差在阈值之上
+                        changed = true;
 
-                    // 将等待队列中的移动到服务队列的末尾
-                    MoveToWorkingQueue(waitingNode);
-                    break;
+                        // 将服务队列中的移动到等待队列末尾
+                        MoveToWaitingQueue(node);
+
+                        // 将等待队列中的移动到服务队列的末尾
+                        MoveToWorkingQueue(waitingNode);
+                        break;
+                    }
                 }
 
                 node = node.Next;
@@ -395,8 +396,39 @@ public class BuptSchedular(
     /// </summary>
     private void FillServingQueue()
     {
+        while (_serviceQueue.Count < 3)
+        {
+            bool found = false;
+
+            LinkedListNode<AirConditionerService>? node = _waitingQueue.First;
+
+            while (node is not null)
+            {
+                AirConditionerState state = States[node.Value.Room.Id];
+
+                if (decimal.Abs(state.CurrentTemperature - state.TargetTemperature) >=
+                    airConditionerManageService.Option.TemperatureThreshold)
+                {
+                    found = true;
+
+                    MoveToWorkingQueue(node);
+                    break;
+                }
+
+                node = node.Next;
+            }
+
+            if (!found)
+            {
+                break;
+            }
+        }
+
+
         while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
         {
+
+
             MoveToWorkingQueue(_waitingQueue.First);
         }
     }
@@ -411,6 +443,7 @@ public class BuptSchedular(
         state.Status = AirConditionerStatus.Waiting;
 
         AirConditionerService service = workingNode.Value;
+        service.TimeToLive = 20;
         AirConditionerRecord record = new()
         {
             RoomId = state.Room.Id,

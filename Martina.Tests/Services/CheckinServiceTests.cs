@@ -22,6 +22,8 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
     public async Task CreateUserWhenCheckinTest()
     {
         await using MartinaDbContext dbContext = databaseFixture.CreateDbContext();
+        TimeService timeService = new(MockCreater.CreateTimeOptionMock());
+        await timeService.StartAsync(CancellationToken.None);
 
         UserService userService = new(dbContext, new SecretsService(_jsonWebOTokenOption), _logger);
         CheckinService checkinService = new(dbContext, userService);
@@ -51,6 +53,8 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
         Assert.NotNull(checkinRecord);
 
         Assert.Equal("1", checkinRecord.UserId);
+
+        await timeService.StopAsync(CancellationToken.None);
     }
 
     [Fact]
