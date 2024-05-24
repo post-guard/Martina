@@ -14,6 +14,14 @@ namespace Martina.Controllers;
 public class BillController(BillService billService, MartinaDbContext dbContext)
     : ControllerBase
 {
+    /// <summary>
+    /// 查询符合条件的账单
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="roomId"></param>
+    /// <param name="beginTime"></param>
+    /// <param name="endTime"></param>
+    /// <returns></returns>
     [Authorize]
     [HttpGet]
     [ProducesResponseType<IEnumerable<BillResponse>>(200)]
@@ -34,6 +42,11 @@ public class BillController(BillService billService, MartinaDbContext dbContext)
     }
 
 
+    /// <summary>
+    /// 获取指定的账单ID
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpGet("{id}")]
     [Authorize]
     [ProducesResponseType<BillResponse>(200)]

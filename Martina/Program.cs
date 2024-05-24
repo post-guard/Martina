@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -18,20 +16,7 @@ if (connectionString is null)
 }
 
 builder.Services.AddControllers();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.DocInclusionPredicate((_, api) => api.HttpMethod != null);
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-    {
-        Description = "Need 'Authorization' header using JWT token.",
-        In = ParameterLocation.Header,
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
-    });
-    options.OperationFilter<SecurityRequirementsOperationFilter>();
-    // 添加XML注释的内容
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Martina.xml"));
-});
+builder.Services.AddMartinaSwagger();
 builder.Services.AddAuthorization(options => options.AddHotelRoleRequirement());
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
     options =>
