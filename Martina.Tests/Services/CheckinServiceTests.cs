@@ -14,7 +14,7 @@ namespace Martina.Tests.Services;
 public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixture<DatabaseFixture>
 {
     private readonly IOptions<JsonWebTokenOption> _jsonWebOTokenOption =
-        MockCreater.CreateJsonWebTokenOptionMock().Object;
+        MockCreater.CreateJsonWebTokenOptionMock();
 
     private readonly ILogger<UserService> _logger = new Mock<ILogger<UserService>>().Object;
 

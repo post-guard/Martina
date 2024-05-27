@@ -73,7 +73,7 @@ public class BuptSchedular(
 
     private async Task Schedule(CancellationToken stoppingToken)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromSeconds(1));
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds((double)(6000 / timeOpton.Value.Factor)));
 
         try
         {
@@ -83,9 +83,9 @@ public class BuptSchedular(
 
                 HandleOnTargetTemperature();
 
-                HandlePendingRequests();
-
                 RemoveUptoTimeService();
+
+                HandlePendingRequests();
 
                 HandleShutdownRequest();
 
@@ -172,6 +172,8 @@ public class BuptSchedular(
             {
                 if (node.Value.Room.Id == pendingService.Room.Id)
                 {
+                    // 需要保持时间片的计算
+                    pendingService.TimeToLive = node.Value.TimeToLive;
                     node.Value = pendingService;
                     existed = true;
                     break;
@@ -287,6 +289,8 @@ public class BuptSchedular(
                 node = node.Next;
             }
         }
+
+        FillServingQueue();
     }
 
     /// <summary>
@@ -294,32 +298,25 @@ public class BuptSchedular(
     /// </summary>
     private void PrioritySchedule()
     {
-        bool changed = true;
+        LinkedListNode<AirConditionerService>? waitingNode = _waitingQueue.First;
 
-        while (changed)
+        while (waitingNode is not null)
         {
-            LinkedListNode<AirConditionerService>? waitingNode = _waitingQueue.First;
-            changed = false;
-
-            if (waitingNode is null)
-            {
-                break;
-            }
-
             LinkedListNode<AirConditionerService>? node = _serviceQueue.First;
+            bool found = false;
 
             while (node is not null)
             {
                 if (node.Value.Speed < waitingNode.Value.Speed)
                 {
-                    AirConditionerState state = States[node.Value.Room.Id];
+                    AirConditionerState state = States[waitingNode.Value.Room.Id];
 
                     if (decimal.Abs(state.CurrentTemperature - state.TargetTemperature) >=
                         airConditionerManageService.Option.TemperatureThreshold)
                     {
                         // 找到一个优先级小于等待队列的
                         // 且温差在阈值之上
-                        changed = true;
+                        found = true;
 
                         // 将服务队列中的移动到等待队列末尾
                         MoveToWaitingQueue(node);
@@ -332,6 +329,8 @@ public class BuptSchedular(
 
                 node = node.Next;
             }
+
+            waitingNode = found ? _waitingQueue.First : waitingNode.Next;
         }
     }
 
@@ -354,18 +353,15 @@ public class BuptSchedular(
             {
                 case FanSpeed.High:
                     state.CurrentTemperature +=
-                        positive * 1 / airConditionerManageService.Option.HighSpeedPerDegree / 60 *
-                        timeOpton.Value.Factor;
+                        positive * 1 / airConditionerManageService.Option.HighSpeedPerDegree / 10;
                     break;
                 case FanSpeed.Middle:
                     state.CurrentTemperature +=
-                        positive * 1 / airConditionerManageService.Option.MiddleSpeedPerDegree / 60 *
-                        timeOpton.Value.Factor;
+                        positive * 1 / airConditionerManageService.Option.MiddleSpeedPerDegree / 10;
                     break;
                 case FanSpeed.Low:
                     state.CurrentTemperature +=
-                        positive * 1 / airConditionerManageService.Option.LowSpeedPerDegree / 60 *
-                        timeOpton.Value.Factor;
+                        positive * 1 / airConditionerManageService.Option.LowSpeedPerDegree / 10;
                     break;
             }
 
@@ -384,8 +380,7 @@ public class BuptSchedular(
                 {
                     decimal positive = state.Cooling ? 1 : -1;
 
-                    state.CurrentTemperature += airConditionerManageService.Option.BackSpeed / 60 *
-                                                timeOpton.Value.Factor * positive;
+                    state.CurrentTemperature += positive * airConditionerManageService.Option.BackSpeed / 10;
                 }
             }
         }
@@ -427,8 +422,6 @@ public class BuptSchedular(
 
         while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
         {
-
-
             MoveToWorkingQueue(_waitingQueue.First);
         }
     }

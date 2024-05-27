@@ -1,15 +1,17 @@
 ﻿using System.Collections.Concurrent;
 using Martina.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Martina.Tests.Utils;
 
 public static class MockCreater
 {
-    public static Mock<IOptions<JsonWebTokenOption>> CreateJsonWebTokenOptionMock()
+    public static IOptions<JsonWebTokenOption> CreateJsonWebTokenOptionMock()
     {
         Mock<IOptions<JsonWebTokenOption>> mock = new();
 
@@ -22,7 +24,7 @@ public static class MockCreater
                 JsonWebTokenKey = "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdf"
             });
 
-        return mock;
+        return mock.Object;
     }
 
     public static ISchedular CreateSchedularMock(MartinaDbContext dbContext, AirConditionerOption option)
@@ -50,8 +52,34 @@ public static class MockCreater
         Mock<IOptions<TimeOption>> mock = new();
 
         mock.SetupGet(t => t.Value)
-            .Returns(new TimeOption { Factor = 6 });
+            .Returns(new TimeOption { Factor = 30 });
 
         return mock.Object;
+    }
+
+    public static ILogger<T> CreateLoggerMock<T>()
+    {
+        Mock<ILogger<T>> mock = new();
+        return mock.Object;
+    }
+
+    public static ILogger<T> CreateOutputLoggerMock<T>(ITestOutputHelper helper)
+    {
+        ILogger<T> logger = new TestLogger<T>(helper);
+
+        return logger;
+    }
+
+    private class TestLogger<T>(ITestOutputHelper testOutputHelper) : ILogger<T>
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            testOutputHelper.WriteLine($"{logLevel}: {formatter(state, exception)}");
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace Martina.Tests.Services;
 
 public class UserServiceTests(DatabaseFixture databaseFixture) : IClassFixture<DatabaseFixture>
 {
-    private readonly IOptions<JsonWebTokenOption> _jsonWebOTokenOption = MockCreater.CreateJsonWebTokenOptionMock().Object;
+    private readonly IOptions<JsonWebTokenOption> _jsonWebOTokenOption = MockCreater.CreateJsonWebTokenOptionMock();
 
     private readonly ILogger<UserService> _logger = new Mock<ILogger<UserService>>().Object;
 

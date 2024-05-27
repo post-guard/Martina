@@ -7,7 +7,7 @@ public static class LoggerExtensions
     public static void LogServiceQueue<T>(this ILogger<T> logger, string message,
         IEnumerable<AirConditionerService> services)
     {
-        IEnumerable<string> roomNames = services.Select(s => s.Room.RoomName);
+        IEnumerable<string> roomNames = services.Select(s => $"{s.Room.RoomName}-{s.TimeToLive}");
 
         logger.LogDebug("{} {}", message, string.Join(',', roomNames));
     }
