@@ -39,7 +39,7 @@ public class AirConditionerOption
     /// 回温之后再次加入工作队列的温差阈值
     /// </summary>
     [Required]
-    public decimal TemperatureThreshold { get; set; }
+    public decimal TemperatureThreshold { get; set; } = decimal.One;
 
     /// <summary>
     /// 高速风导致温度变化的速度

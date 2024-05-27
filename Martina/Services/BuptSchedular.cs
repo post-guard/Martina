@@ -418,12 +418,6 @@ public class BuptSchedular(
                 break;
             }
         }
-
-
-        while (_serviceQueue.Count < 3 && _waitingQueue.First is not null)
-        {
-            MoveToWorkingQueue(_waitingQueue.First);
-        }
     }
 
     /// <summary>
