@@ -10,6 +10,20 @@ namespace Martina.Controllers;
 [Route("api/time")]
 public class TimeController : ControllerBase
 {
+    /// <summary>
+    /// 获得当前的系统时间
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("now")]
+    public IActionResult GetTime()
+    {
+        return Ok(new TimeResponse
+        {
+            Now = TimeService.Now
+        });
+    }
+
+
     [Route("")]
     public async Task PushTime()
     {
