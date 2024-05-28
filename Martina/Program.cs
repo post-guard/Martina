@@ -61,6 +61,7 @@ builder.Services.AddScoped<IAuthorizationHandler, HotelRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CheckinHandler>();
 builder.Services.AddHostedService<TimeService>();
 builder.Services.AddScoped<BillService>();
+builder.Services.AddScoped<AirConditionerTestService>();
 
 WebApplication application = builder.Build();
 

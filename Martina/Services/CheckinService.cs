@@ -38,7 +38,9 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
     {
         ObjectId roomId = new(request.RoomId);
         DateTimeOffset beginTime = DateTimeOffset.FromUnixTimeSeconds(request.BeginTime);
+        beginTime = TimeZoneInfo.ConvertTime(beginTime, TimeZoneInfo.Local);
         DateTimeOffset endTime = DateTimeOffset.FromUnixTimeSeconds(request.EndTime);
+        endTime = TimeZoneInfo.ConvertTime(endTime, TimeZoneInfo.Local);
 
         if (endTime <= beginTime)
         {

@@ -1,4 +1,5 @@
 ﻿using Martina.DataTransferObjects;
+using Martina.Enums;
 using Martina.Tests.Fixtures;
 using Martina.Tests.Utils;
 using Microsoft.Extensions.Logging;
@@ -84,10 +85,24 @@ public class BillServiceTests(DatabaseFixture databaseFixture) : IClassFixture<D
             EndTime = DateTimeOffset.Now.AddDays(3).ToUnixTimeSeconds()
         });
 
+        await dbContext.AirConditionerRecords.AddAsync(new AirConditionerRecord
+        {
+            Id = ObjectId.GenerateNewId(),
+            RoomId = room1.Id,
+            BeginTime = DateTimeOffset.Now,
+            EndTime = DateTimeOffset.Now.AddMinutes(3),
+            BeginTemperature = 26,
+            EndTemperature = 24,
+            Price = 1,
+            Fee = 3,
+            Speed = FanSpeed.Middle
+        });
+        await dbContext.SaveChangesAsync();
+
         BillRecord record = await billService.GenerateBillRecord([checkinRecord1.Id, checkinRecord2.Id]);
 
         Assert.Equal(3125, record.RoomFee);
-        Assert.Equal(0, record.AirConditionerFee);
+        Assert.Equal(3, record.AirConditionerFee);
 
         await timeService.StopAsync(CancellationToken.None);
     }

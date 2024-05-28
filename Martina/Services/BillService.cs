@@ -113,7 +113,7 @@ public class BillService(MartinaDbContext dbContext, CheckinService checkinServi
         }
 
         List<AirConditionerRecord> airConditionerRecords = records
-            .Select(r => checkinService.QueryAirConditionerRecords(r.Id, r.BeginTime, r.EndTime))
+            .Select(r => checkinService.QueryAirConditionerRecords(r.RoomId, r.BeginTime, r.EndTime))
             .Aggregate(new List<AirConditionerRecord>(), (result, middle) =>
             {
                 result.AddRange(middle);
