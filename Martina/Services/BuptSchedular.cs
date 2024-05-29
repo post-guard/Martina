@@ -172,9 +172,24 @@ public class BuptSchedular(
             {
                 if (node.Value.Room.Id == pendingService.Room.Id)
                 {
+                    // 首先产生新的详单
+                    AirConditionerRecord record = new()
+                    {
+                        RoomId = state.Room.Id,
+                        BeginTemperature = node.Value.BeginTemperature,
+                        EndTemperature = state.CurrentTemperature,
+                        Speed = node.Value.Speed,
+                        BeginTime = node.Value.BeginTime,
+                        EndTime = TimeService.Now
+                    };
+                    _recordsChannel.Writer.TryWrite(record);
+
                     // 需要保持时间片的计算
                     pendingService.TimeToLive = node.Value.TimeToLive;
+                    pendingService.BeginTime = TimeService.Now;
+                    pendingService.BeginTemperature = state.CurrentTemperature;
                     node.Value = pendingService;
+
                     existed = true;
                     break;
                 }

@@ -15,6 +15,7 @@ public class TimeController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("now")]
+    [ProducesResponseType<TimeResponse>(200)]
     public IActionResult GetTime()
     {
         return Ok(new TimeResponse

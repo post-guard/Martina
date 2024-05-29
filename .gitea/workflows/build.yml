@@ -20,6 +20,18 @@ jobs:
                     path: ~/.nuget/packages
                     key: ${{ runner.os }}-nuget
                     save-always: true
+            -   name: Get npm cache directory
+                id: npm-cache-dir
+                shell: bash
+                run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+            -   name: Use npm cache
+                uses: https://git.rrricardo.top/actions/cache@v4
+                id : npm-cache
+                with:
+                    path: ${{ steps.npm-cache-dir.outputs.dir }}
+                    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                    restore-keys: |
+                        ${{ runner.os }}-node-
             -   name: Build Frontend
                 run: |
                     cd Martina/martina-frontend
