@@ -112,4 +112,32 @@ public class TestController(
 
         return BadRequest(new ExceptionMessage("没有正在运行的任务"));
     }
+
+    /// <summary>
+    /// 清除指定测试集造成的影响
+    /// </summary>
+    /// <remarks>
+    /// casename : hot | cool
+    /// </remarks>
+    /// <param name="caseName"></param>
+    /// <returns></returns>
+    [HttpPatch("clear")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType<ExceptionMessage>(400)]
+    public async Task<IActionResult> ClearTest([FromQuery] string caseName)
+    {
+        if (caseName == "hot")
+        {
+            await airConditionerTestService.ClearTestRecord(AirConditionerTestCases.HotRooms);
+            return Ok();
+        }
+
+        if (caseName == "cool")
+        {
+            await airConditionerTestService.ClearTestRecord(AirConditionerTestCases.CoolRooms);
+            return Ok();
+        }
+
+        return BadRequest(new ExceptionMessage("指定的测试集不存在"));
+    }
 }

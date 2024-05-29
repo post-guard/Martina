@@ -21,7 +21,7 @@ public class ManagerController(ManagerService managerService) : ControllerBase
     /// <param name="end"></param>
     /// <returns></returns>
     [HttpGet("revenue")]
-    // [Authorize(policy: "BillAdministrator")]
+    [Authorize(policy: "BillAdministrator")]
     [ProducesResponseType<ExceptionMessage>(400)]
     [ProducesResponseType<RevenueTrend>(200)]
     public async Task<IActionResult> QueryRevenueTrend([FromQuery] DateTimeOffset begin, [FromQuery] DateTimeOffset end)

@@ -125,4 +125,34 @@ public class AirConditionerTestService(
 
         return result;
     }
+
+    /// <summary>
+    /// 清除数据库中的指定测试脚本数据
+    /// </summary>
+    /// <param name="testRooms"></param>
+    public async Task ClearTestRecord(List<(string, decimal)> testRooms)
+    {
+        List<Room> rooms = (from item in dbContext.Rooms
+            where testRooms.Exists(p => p.Item1 == item.RoomName)
+            select item).ToList();
+
+        IQueryable<CheckinRecord> checkinRecords = from item in dbContext.CheckinRecords
+            where rooms.Exists(r => item.RoomId == r.Id)
+            select item;
+
+        dbContext.CheckinRecords.RemoveRange(checkinRecords);
+        await dbContext.SaveChangesAsync();
+
+        IQueryable<AirConditionerRecord> airConditionerRecords = from item in dbContext.AirConditionerRecords
+            where rooms.Exists(r => item.RoomId == r.Id)
+            select item;
+
+        dbContext.AirConditionerRecords.RemoveRange(airConditionerRecords);
+        await dbContext.SaveChangesAsync();
+
+        dbContext.Rooms.RemoveRange(rooms);
+        await dbContext.SaveChangesAsync();
+
+        await schedular.Reset();
+    }
 }
