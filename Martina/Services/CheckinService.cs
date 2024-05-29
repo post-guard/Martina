@@ -37,9 +37,10 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
     public async Task<CheckinRecord> Checkin(CheckinRequest request)
     {
         ObjectId roomId = new(request.RoomId);
-        DateTimeOffset beginTime = DateTimeOffset.FromUnixTimeSeconds(request.BeginTime);
+        // 前端发送的时间戳是UTC时间
+        DateTimeOffset beginTime = DateTimeOffset.FromUnixTimeSeconds(request.BeginTime).AddHours(-8);
         beginTime = TimeZoneInfo.ConvertTime(beginTime, TimeZoneInfo.Local);
-        DateTimeOffset endTime = DateTimeOffset.FromUnixTimeSeconds(request.EndTime);
+        DateTimeOffset endTime = DateTimeOffset.FromUnixTimeSeconds(request.EndTime).AddHours(-8);
         endTime = TimeZoneInfo.ConvertTime(endTime, TimeZoneInfo.Local);
 
         if (endTime <= beginTime)
