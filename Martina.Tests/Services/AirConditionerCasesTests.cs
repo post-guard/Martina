@@ -67,7 +67,7 @@ public class AirConditionerCasesTests(DatabaseFixture fixture, ITestOutputHelper
 
         BuptSchedular schedular = new(serviceCollection.BuildServiceProvider(), timeOptinMock,
             manageService,
-            MockCreater.CreateLoggerMock<BuptSchedular>());
+            MockCreater.CreateOutputLoggerMock<BuptSchedular>(outputHelper));
 
         await schedular.StartAsync(CancellationToken.None);
 

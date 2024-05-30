@@ -326,8 +326,13 @@ public class BuptSchedular(
                 {
                     AirConditionerState state = States[waitingNode.Value.Room.Id];
 
-                    if (decimal.Abs(state.CurrentTemperature - state.TargetTemperature) >=
-                        airConditionerManageService.Option.TemperatureThreshold)
+                    bool outOfTheshlod = state.Cooling
+                        ? state.CurrentTemperature >= state.TargetTemperature +
+                        airConditionerManageService.Option.TemperatureThreshold
+                        : state.CurrentTemperature <= state.TargetTemperature -
+                        airConditionerManageService.Option.TemperatureThreshold;
+
+                    if (outOfTheshlod)
                     {
                         // 找到一个优先级小于等待队列的
                         // 且温差在阈值之上
@@ -416,8 +421,13 @@ public class BuptSchedular(
             {
                 AirConditionerState state = States[node.Value.Room.Id];
 
-                if (decimal.Abs(state.CurrentTemperature - state.TargetTemperature) >=
-                    airConditionerManageService.Option.TemperatureThreshold)
+                bool outOfTheshlod = state.Cooling
+                    ? state.CurrentTemperature >= state.TargetTemperature +
+                    airConditionerManageService.Option.TemperatureThreshold
+                    : state.CurrentTemperature <= state.TargetTemperature -
+                    airConditionerManageService.Option.TemperatureThreshold;
+
+                if (outOfTheshlod)
                 {
                     found = true;
 
