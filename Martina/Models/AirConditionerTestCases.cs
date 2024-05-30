@@ -1,4 +1,4 @@
-﻿using Martina.DataTransferObjects;
+using Martina.DataTransferObjects;
 using Martina.Enums;
 
 namespace Martina.Models;
@@ -216,7 +216,7 @@ public static class AirConditionerTestCases
         new Dictionary<string, AirConditionerRequest>
         {
             {
-                "cool-test-2", new AirConditionerRequest { Open = false, TargetTemperature = 18, Speed = FanSpeed.High }
+                "cool-test-2", new AirConditionerRequest { Open = false, TargetTemperature = 19, Speed = FanSpeed.Middle }
             }
         },
         // 7
@@ -224,6 +224,9 @@ public static class AirConditionerTestCases
         {
             {
                 "cool-test-2", new AirConditionerRequest { Open = true, TargetTemperature = 19, Speed = FanSpeed.Middle }
+            },
+            {
+                "cool-test-5", new AirConditionerRequest { Open = true, TargetTemperature = 22, Speed = FanSpeed.High }
             }
         },
         // 8
@@ -266,14 +269,14 @@ public static class AirConditionerTestCases
         new Dictionary<string, AirConditionerRequest>
         {
             {
-                "cool-test-5", new AirConditionerRequest { Open = false, TargetTemperature = 20, Speed = FanSpeed.High }
+                "cool-test-5", new AirConditionerRequest { Open = true, TargetTemperature = 20, Speed = FanSpeed.High }
             }
         },
         // 16
         new Dictionary<string, AirConditionerRequest>
         {
             {
-                "cool-test-5", new AirConditionerRequest { Open = false, TargetTemperature = 20, Speed = FanSpeed.High }
+                "cool-test-2", new AirConditionerRequest { Open = false, TargetTemperature = 22, Speed = FanSpeed.Middle }
             }
         },
         // 17
