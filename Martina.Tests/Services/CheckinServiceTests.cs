@@ -147,4 +147,39 @@ public class CheckinServiceTests(DatabaseFixture databaseFixture) : IClassFixtur
         Assert.Equal(start, record.BeginTime);
         Assert.Equal(end, record.EndTime);
     }
+
+    [Fact]
+    public async Task CheckoutTest()
+    {
+        await using MartinaDbContext dbContext = databaseFixture.CreateDbContext();
+        CheckinService checkinService = ServiceCreator.CreateCheckinService(dbContext);
+        BillService billService = ServiceCreator.CreateBillService(dbContext);
+
+        Room room = new()
+        {
+            Id = ObjectId.GenerateNewId(), RoomName = "123123", Price = 100, RoomBasicTemperature = 25
+        };
+        await dbContext.Rooms.AddAsync(room);
+        await dbContext.SaveChangesAsync();
+
+        CheckinRecord record = await checkinService.Checkin(new CheckinRequest
+        {
+            RoomId = room.Id.ToString(),
+            Username = "测试",
+            UserId = "test",
+            BeginTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            EndTime = DateTimeOffset.Now.AddDays(1).ToUnixTimeSeconds()
+        });
+
+        await billService.Checkout([record.Id]);
+
+        await checkinService.Checkin(new CheckinRequest
+        {
+            RoomId = room.Id.ToString(),
+            Username = "测试",
+            UserId = "test",
+            BeginTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            EndTime = DateTimeOffset.Now.AddDays(1).ToUnixTimeSeconds()
+        });
+    }
 }

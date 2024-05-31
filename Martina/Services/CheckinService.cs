@@ -14,7 +14,7 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
         DateTimeOffset endTime = DateTimeOffset.FromUnixTimeSeconds(end);
 
         IQueryable<CheckinRecord> records = from item in dbContext.CheckinRecords.AsNoTracking()
-            where item.BeginTime >= beginTime && item.EndTime <= endTime
+            where item.BeginTime >= beginTime && item.EndTime <= endTime && !item.Checkout
             select item;
 
         if (roomId is not null)
@@ -56,7 +56,7 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
         }
 
         IQueryable<CheckinRecord> records = from item in dbContext.CheckinRecords.AsNoTracking()
-            where item.RoomId == roomId && item.EndTime >= beginTime && item.BeginTime <= endTime
+            where item.RoomId == roomId && item.EndTime >= beginTime && item.BeginTime <= endTime && !item.Checkout
             select item;
 
         if (await records.AnyAsync())
