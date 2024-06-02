@@ -14,7 +14,7 @@ public class TestController(
     AirConditionerManageService airConditionerManageService,
     AirConditionerTestService airConditionerTestService) : ControllerBase
 {
-    private static readonly CancellationTokenSource s_stopptingTokenSource = new();
+    private static CancellationTokenSource s_stopptingTokenSource = new();
 
     private static Task? s_runningTask;
 
@@ -43,6 +43,7 @@ public class TestController(
         }
 
         IEnumerable<CheckinRecord> records;
+        s_stopptingTokenSource = new CancellationTokenSource();
 
         if (caseName == "hot")
         {
