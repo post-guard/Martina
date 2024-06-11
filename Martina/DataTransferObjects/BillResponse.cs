@@ -20,13 +20,13 @@ public class BillResponse
     /// 入住的开始时间
     /// </summary>
     [Required]
-    public DateTimeOffset BeginTime { get; set; }
+    public long BeginTime { get; set; }
 
     /// <summary>
     /// 入住的结束时间
     /// </summary>
     [Required]
-    public DateTimeOffset EndTime { get; set; }
+    public long EndTime { get; set; }
 
     /// <summary>
     /// 入住时间段中的入住记录列表

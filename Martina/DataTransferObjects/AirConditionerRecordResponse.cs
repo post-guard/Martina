@@ -9,13 +9,13 @@ public class AirConditionerRecordResponse
     /// 开始使用的时间
     /// </summary>
     [Required]
-    public DateTimeOffset BeginTime { get; set; }
+    public long BeginTime { get; set; }
 
     /// <summary>
     /// 结束使用的时间
     /// </summary>
     [Required]
-    public DateTimeOffset EndTime { get; set; }
+    public long EndTime { get; set; }
 
     /// <summary>
     /// 开始使用时的温度
@@ -61,8 +61,8 @@ public class AirConditionerRecordResponse
 
     public AirConditionerRecordResponse(AirConditionerRecord airConditionerRecord)
     {
-        BeginTime = airConditionerRecord.BeginTime;
-        EndTime = airConditionerRecord.EndTime;
+        BeginTime = airConditionerRecord.BeginTime.ToUnixTimeSeconds();
+        EndTime = airConditionerRecord.EndTime.ToUnixTimeSeconds();
         BeginTemperature = airConditionerRecord.BeginTemperature;
         EndTemperature = airConditionerRecord.EndTemperature;
         TemperatureDelta = decimal.Abs(BeginTemperature - EndTemperature);

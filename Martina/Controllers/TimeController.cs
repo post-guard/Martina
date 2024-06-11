@@ -20,7 +20,7 @@ public class TimeController : ControllerBase
     {
         return Ok(new TimeResponse
         {
-            Now = TimeService.Now
+            Now = TimeService.Now.ToUnixTimeSeconds()
         });
     }
 
@@ -75,7 +75,7 @@ public class TimeController : ControllerBase
 
     private static ReadOnlyMemory<byte> GenerateMessage()
     {
-        TimeResponse response = new() { Now = TimeService.Now };
+        TimeResponse response = new() { Now = TimeService.Now.ToUnixTimeSeconds() };
 
         return JsonSerializer.SerializeToUtf8Bytes(response, new JsonSerializerOptions(JsonSerializerDefaults.Web));
     }

@@ -78,8 +78,8 @@ public class BillService(MartinaDbContext dbContext, CheckinService checkinServi
         {
             Id = record.Id.ToString(),
             UserId = record.UserId,
-            BeginTime = record.BeginTime,
-            EndTime = record.EndTime,
+            BeginTime = record.BeginTime.ToUnixTimeSeconds(),
+            EndTime = record.EndTime.ToUnixTimeSeconds(),
             CheckinResponses = checkinResponse,
             AirConditionerRecordResponses = airConditionerRecordResponse,
             RoomFee = record.RoomFee,
@@ -171,8 +171,8 @@ public class BillService(MartinaDbContext dbContext, CheckinService checkinServi
         {
             Id = billRecord.Id == ObjectId.Empty ? null : billRecord.Id.ToString(),
             UserId = billRecord.UserId,
-            BeginTime = billRecord.BeginTime,
-            EndTime = billRecord.EndTime,
+            BeginTime = billRecord.BeginTime.ToUnixTimeSeconds(),
+            EndTime = billRecord.EndTime.ToUnixTimeSeconds(),
             CheckinResponses = checkinResponse,
             AirConditionerRecordResponses = airConditionerRecordResponse,
             RoomFee = billRecord.RoomFee,

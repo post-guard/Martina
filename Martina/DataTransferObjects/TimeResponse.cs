@@ -8,5 +8,5 @@ public class TimeResponse
     /// 当前的系统时间
     /// </summary>
     [Required]
-    public DateTimeOffset Now { get; set; }
+    public long Now { get; set; }
 }
