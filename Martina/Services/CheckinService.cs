@@ -95,6 +95,38 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
             where item.BeginTime >= begin && item.EndTime <= end
             select item;
 
-        return query.ToList();
+        List<AirConditionerRecord> records = [];
+        AirConditionerRecord? lastRecord = null;
+
+        foreach (AirConditionerRecord record in query)
+        {
+            if (lastRecord is null)
+            {
+                lastRecord = record;
+            }
+            else
+            {
+                if (lastRecord.Speed == record.Speed &&
+                    lastRecord.EndTime.ToUnixTimeSeconds() == record.BeginTime.ToUnixTimeSeconds())
+                {
+                    lastRecord.EndTemperature = record.EndTemperature;
+                    lastRecord.EndTime = record.EndTime;
+                    lastRecord.Fee += record.Fee;
+                }
+                else
+                {
+                    records.Add(lastRecord);
+                    lastRecord = record;
+                }
+            }
+        }
+
+        if (lastRecord is not null)
+        {
+            records.Add(lastRecord);
+        }
+
+        return records;
+        // return query.ToList();
     }
 }

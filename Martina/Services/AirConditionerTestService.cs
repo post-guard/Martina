@@ -116,7 +116,7 @@ public class AirConditionerTestService(
             result.Add(await checkinService.Checkin(new CheckinRequest
             {
                 RoomId = room.Id.ToString(),
-                UserId = "test-user",
+                UserId = roomName,
                 Username = "入住测试用户",
                 BeginTime = TimeService.Now.ToUnixTimeSeconds(),
                 EndTime = TimeService.Now.AddDays(count).ToUnixTimeSeconds()
