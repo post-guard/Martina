@@ -3,6 +3,9 @@ using MongoDB.Bson;
 
 namespace Martina.Entities;
 
+/// <summary>
+/// 酒店房间实体类
+/// </summary>
 public class Room
 {
     public ObjectId Id { get; set; }

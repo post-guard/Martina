@@ -9,6 +9,14 @@ namespace Martina.Services;
 
 public class BillService(MartinaDbContext dbContext, CheckinService checkinService)
 {
+    /// <summary>
+    /// 查询当前数据库中的账单
+    /// </summary>
+    /// <param name="userId">查询的用户ID</param>
+    /// <param name="roomId">查询的房间ID</param>
+    /// <param name="begin">查询的开始时间</param>
+    /// <param name="end">查询的结束时间</param>
+    /// <returns></returns>
     public List<BillRecord> QueryBillRecord(string? userId, string? roomId, DateTimeOffset begin, DateTimeOffset end)
     {
         IQueryable<BillRecord> records = dbContext.BillRecords.AsNoTracking();
@@ -37,6 +45,11 @@ public class BillService(MartinaDbContext dbContext, CheckinService checkinServi
         return records.ToList();
     }
 
+    /// <summary>
+    /// 办理结账
+    /// </summary>
+    /// <param name="checkinIds">需要结账的入住记录列表</param>
+    /// <returns></returns>
     public async Task<BillResponse> Checkout(IEnumerable<ObjectId> checkinIds)
     {
         BillRecord record = await GenerateBillRecord(checkinIds);
@@ -87,6 +100,12 @@ public class BillService(MartinaDbContext dbContext, CheckinService checkinServi
         };
     }
 
+    /// <summary>
+    /// 生成账单预览
+    /// </summary>
+    /// <param name="checkinIds">欲结账的入住记录列表</param>
+    /// <returns></returns>
+    /// <exception cref="BillException"></exception>
     public async Task<BillRecord> GenerateBillRecord(IEnumerable<ObjectId> checkinIds)
     {
         List<CheckinRecord> records = [];

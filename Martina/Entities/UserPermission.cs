@@ -3,6 +3,9 @@ using MongoDB.Bson;
 
 namespace Martina.Entities;
 
+/// <summary>
+/// 用户权限实体类
+/// </summary>
 public class UserPermission
 {
     /// <summary>

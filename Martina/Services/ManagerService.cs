@@ -4,8 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Martina.Services;
 
+/// <summary>
+/// 经理服务
+/// </summary>
+/// <param name="dbContext"></param>
 public class ManagerService(MartinaDbContext dbContext)
 {
+    /// <summary>
+    /// 查看当前的入住人数
+    /// </summary>
+    /// <returns></returns>
     public Task<int> QueryCurrentUser()
     {
         List<CheckinRecord> records = (from item in dbContext.CheckinRecords.AsNoTracking()
@@ -15,6 +23,10 @@ public class ManagerService(MartinaDbContext dbContext)
         return Task.FromResult(records.Select(r => r.UserId).Distinct().Count());
     }
 
+    /// <summary>
+    /// 查看当前入住的房间数
+    /// </summary>
+    /// <returns></returns>
     public Task<int> QueryCurrentCheckin()
     {
         IQueryable<CheckinRecord> records = from item in dbContext.CheckinRecords.AsNoTracking()
@@ -24,6 +36,12 @@ public class ManagerService(MartinaDbContext dbContext)
         return Task.FromResult(records.Count());
     }
 
+    /// <summary>
+    /// 计算指定时间范围的每日收入
+    /// </summary>
+    /// <param name="begin"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
     public async Task<List<DailyRevenue>> QueryDailyRevenue(DateTimeOffset begin, DateTimeOffset end)
     {
         List<DailyRevenue> result = [];

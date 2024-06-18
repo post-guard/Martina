@@ -102,6 +102,13 @@ public sealed class UserService(
         await dbContext.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// 创建用户
+    /// 默认密码为用户ID
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="username">用户名</param>
+    /// <returns></returns>
     public async Task<User> CreateUser(string userId, string username)
     {
         IQueryable<User> existedQuery = from item in dbContext.Users.AsNoTracking()

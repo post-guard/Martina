@@ -97,6 +97,10 @@ public class BuptSchedular(
         }
     }
 
+    /// <summary>
+    /// 将使用记录写入数据库
+    /// </summary>
+    /// <param name="stoppingToken"></param>
     private async Task WirteRecordToDatabase(CancellationToken stoppingToken)
     {
         using IServiceScope scope = provider.CreateScope();

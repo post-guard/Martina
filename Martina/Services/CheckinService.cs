@@ -8,6 +8,14 @@ namespace Martina.Services;
 
 public class CheckinService(MartinaDbContext dbContext, UserService userService)
 {
+    /// <summary>
+    /// 查询入住记录列表
+    /// </summary>
+    /// <param name="roomId"></param>
+    /// <param name="userId"></param>
+    /// <param name="begin"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
     public List<CheckinRecord> QueryCheckinRecords(string? roomId, string? userId, long begin, long end)
     {
         DateTimeOffset beginTime = DateTimeOffset.FromUnixTimeSeconds(begin);
@@ -34,6 +42,12 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
         return records.ToList();
     }
 
+    /// <summary>
+    /// 办理入住
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    /// <exception cref="CheckinException"></exception>
     public async Task<CheckinRecord> Checkin(CheckinRequest request)
     {
         ObjectId roomId = new(request.RoomId);
@@ -127,6 +141,5 @@ public class CheckinService(MartinaDbContext dbContext, UserService userService)
         }
 
         return records;
-        // return query.ToList();
     }
 }

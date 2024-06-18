@@ -2,6 +2,9 @@
 
 namespace Martina.Entities;
 
+/// <summary>
+/// 账单记录实体类
+/// </summary>
 public class BillRecord
 {
     public ObjectId Id { get; set; }

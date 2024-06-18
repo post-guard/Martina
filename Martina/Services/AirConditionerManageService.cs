@@ -15,6 +15,13 @@ public class AirConditionerManageService
 
     public ConcurrentDictionary<ObjectId, Room> Rooms { get; } = new();
 
+    /// <summary>
+    /// 验证空调请求的有效性
+    /// </summary>
+    /// <param name="roomId">发送空调服务请求的房间ID</param>
+    /// <param name="request">空调服务请求</param>
+    /// <param name="message">如果无效输出提示信息</param>
+    /// <returns>是否为有效的空调请求</returns>
     public bool VolidateAirConditionerRequest(ObjectId roomId, AirConditionerRequest request,[NotNullWhen(false)] out string? message)
     {
         if (!Opening)

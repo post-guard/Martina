@@ -1,5 +1,8 @@
 ﻿namespace Martina.Enums;
 
+/// <summary>
+/// 用户权限枚举
+/// </summary>
 [Flags]
 public enum Roles
 {

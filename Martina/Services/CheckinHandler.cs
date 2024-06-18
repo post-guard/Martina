@@ -6,6 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Martina.Services;
 
+/// <summary>
+/// 入住用户的权限验证处理类
+/// </summary>
+/// <param name="roomService"></param>
+/// <param name="dbContext"></param>
 public class CheckinHandler(
     RoomService roomService,
     MartinaDbContext dbContext)

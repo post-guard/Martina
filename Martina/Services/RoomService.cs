@@ -9,6 +9,10 @@ namespace Martina.Services;
 
 public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
 {
+    /// <summary>
+    /// 列出当前所有的房间及其状态
+    /// </summary>
+    /// <returns></returns>
     public async Task<IEnumerable<RoomResponse>> ListAllRooms()
     {
         List<RoomResponse> result = [];
@@ -24,6 +28,11 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
         return result;
     }
 
+    /// <summary>
+    /// 查找指定房间的状态
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<RoomResponse?> FindRoomById(string id)
     {
         if (!ObjectId.TryParse(id, out ObjectId roomId))
@@ -48,6 +57,11 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
         return record is null ? new RoomResponse(room, state) : new RoomResponse(room, record, state);
     }
 
+    /// <summary>
+    /// 查询指定房间当前的状态
+    /// </summary>
+    /// <param name="roomId"></param>
+    /// <returns></returns>
     public async Task<CheckinRecord?> QueryRoomCurrentStatus(ObjectId roomId)
     {
         IQueryable<CheckinRecord> query = from item in dbContext.CheckinRecords.AsNoTracking()
@@ -58,6 +72,11 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
         return await query.FirstOrDefaultAsync();
     }
 
+    /// <summary>
+    /// 查询指定用户当前的状态
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     public async Task<CheckinRecord?> QueryUserCurrentStatus(string userId)
     {
         IQueryable<CheckinRecord> query = from item in dbContext.CheckinRecords.AsNoTracking()
@@ -68,6 +87,11 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
         return await query.FirstOrDefaultAsync();
     }
 
+    /// <summary>
+    /// 创建房间
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     public async Task<RoomResponse> CreateRoom(CreateRoomRequest request)
     {
         Room room = new()
@@ -86,6 +110,11 @@ public class RoomService(MartinaDbContext dbContext, ISchedular schedular)
         return new RoomResponse(room, schedular.States[room.Id]);
     }
 
+    /// <summary>
+    /// 删除房间
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<bool> DeleteRoom(string id)
     {
         if (!ObjectId.TryParse(id, out ObjectId roomId))
